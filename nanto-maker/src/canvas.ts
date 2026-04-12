@@ -19,14 +19,6 @@ export const SCHEMES: Scheme[] = [
 
 export const IMPACT_PRESETS = ["なんと！？", "マジか！", "えっ！？", "信じられない！", "ウソだろ！", "やばすぎる", "天才！！"];
 
-// ---- バラカラープリセット ----
-export const FLOWER_COLORS: Record<string, { rose: string; inner: string; center: string; leaf: string; label: string }> = {
-  pink:   { rose: "#ff8ab4", inner: "#e0507a", center: "#b02858", leaf: "#3a7a30", label: "ピンク" },
-  red:    { rose: "#e03050", inner: "#a01028", center: "#700018", leaf: "#2a6020", label: "レッド" },
-  purple: { rose: "#c07ad4", inner: "#9040b0", center: "#602080", leaf: "#3a7a30", label: "パープル" },
-  gold:   { rose: "#e8c048", inner: "#c89020", center: "#a06800", leaf: "#6a7020", label: "ゴールド" },
-};
-
 // ---- キラキラカラープリセット ----
 export const SPARKLE_COLORS: Record<string, { color: string; label: string }> = {
   white:  { color: "#ffffff", label: "白" },
@@ -38,7 +30,7 @@ export const SPARKLE_COLORS: Record<string, { color: string; label: string }> = 
 export interface DrawOptions {
   scheme: Scheme;
   impactText: string;
-  textPos: "top" | "bottom" | "both";
+  textPos: "top" | "bottom";
   lineCount: number;
   intensity: number;
   burstEdge: boolean;
@@ -46,8 +38,6 @@ export interface DrawOptions {
   textSize: number;
   watercolor: boolean;
   watercolorStrength: number;
-  flowerFrame: boolean;
-  flowerColorId: string;
   sparkle: boolean;
   sparkleCount: number;
   sparkleColorId: string;
@@ -141,169 +131,6 @@ function applyWatercolor(
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(dx, dy, dw, dh);
   ctx.restore();
-}
-
-// ================================================================
-// ---- バラ描画 ----
-// ================================================================
-
-function drawRose(
-  ctx: CanvasRenderingContext2D,
-  cx: number, cy: number,
-  size: number,
-  c: { rose: string; inner: string; center: string; leaf: string }
-) {
-  ctx.save();
-  ctx.translate(cx, cy);
-
-  // 葉（バラの後ろ）
-  for (const side of [-1, 1] as const) {
-    ctx.save();
-    ctx.fillStyle = c.leaf;
-    ctx.globalAlpha = 0.82;
-    ctx.beginPath();
-    ctx.moveTo(0, size * 0.32);
-    ctx.bezierCurveTo(
-      side * size * 0.48, size * 0.48,
-      side * size * 0.72, size * 0.88,
-      side * size * 0.42, size * 1.12
-    );
-    ctx.bezierCurveTo(
-      side * size * 0.12, size * 0.88,
-      side * size * 0.04, size * 0.62,
-      0, size * 0.32
-    );
-    ctx.closePath();
-    ctx.fill();
-    // 葉脈
-    ctx.strokeStyle = c.center;
-    ctx.globalAlpha = 0.3;
-    ctx.lineWidth = size * 0.022;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(0, size * 0.32);
-    ctx.bezierCurveTo(
-      side * size * 0.3, size * 0.62,
-      side * size * 0.38, size * 0.92,
-      side * size * 0.42, size * 1.12
-    );
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  // 外側の花びら（5枚）
-  for (let i = 0; i < 5; i++) {
-    ctx.save();
-    ctx.rotate((i / 5) * Math.PI * 2);
-    ctx.fillStyle = c.rose;
-    ctx.globalAlpha = 0.87;
-    ctx.beginPath();
-    ctx.ellipse(0, -size * 0.46, size * 0.26, size * 0.48, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // 内側の花びら（5枚・少し回転）
-  for (let i = 0; i < 5; i++) {
-    ctx.save();
-    ctx.rotate((i / 5) * Math.PI * 2 + Math.PI / 5);
-    ctx.fillStyle = c.inner;
-    ctx.globalAlpha = 0.93;
-    ctx.beginPath();
-    ctx.ellipse(0, -size * 0.26, size * 0.17, size * 0.28, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // 中心
-  ctx.fillStyle = c.center;
-  ctx.globalAlpha = 1;
-  ctx.beginPath();
-  ctx.arc(0, 0, size * 0.15, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.restore();
-}
-
-// ================================================================
-// ---- フラワーフレーム ----
-// ================================================================
-
-function drawFlowerFrame(
-  ctx: CanvasRenderingContext2D,
-  W: number, H: number,
-  colorId: string
-) {
-  const c = FLOWER_COLORS[colorId] ?? FLOWER_COLORS.pink;
-  const cornerSize = W * 0.085;
-  const edgeSize   = W * 0.058;
-  const margin     = cornerSize * 0.72;
-
-  // ---- つる（上下辺のウェーブライン）----
-  ctx.save();
-  ctx.strokeStyle = c.leaf;
-  ctx.lineWidth   = W * 0.0035;
-  ctx.globalAlpha = 0.42;
-  ctx.lineCap     = "round";
-
-  for (const edge of ["top", "bottom"] as const) {
-    const y0 = edge === "top" ? margin * 0.55 : H - margin * 0.55;
-    const amp = margin * 0.32;
-    ctx.beginPath();
-    ctx.moveTo(margin, y0);
-    const steps = 8;
-    for (let s = 0; s < steps; s++) {
-      const x1 = margin + (W - margin * 2) * (s + 0.5) / steps;
-      const x2 = margin + (W - margin * 2) * (s + 1)   / steps;
-      const yc = y0 + amp * (s % 2 === 0 ? -1 : 1);
-      ctx.quadraticCurveTo(x1, yc, x2, y0);
-    }
-    ctx.stroke();
-  }
-  ctx.restore();
-
-  // ---- バラ配置 ----
-
-  // 四隅（大）
-  const corners: [number, number][] = [
-    [margin, margin],
-    [W - margin, margin],
-    [margin, H - margin],
-    [W - margin, H - margin],
-  ];
-  for (const [x, y] of corners) {
-    ctx.save();
-    ctx.globalAlpha = 0.93;
-    drawRose(ctx, x, y, cornerSize, c);
-    ctx.restore();
-  }
-
-  // 上下辺（中・小）
-  const topBottomX = [W * 0.28, W * 0.5, W * 0.72];
-  for (const x of topBottomX) {
-    const sz = x === W * 0.5 ? edgeSize : edgeSize * 0.78;
-    // 上
-    ctx.save();
-    ctx.globalAlpha = 0.85;
-    drawRose(ctx, x, margin * 0.82, sz, c);
-    ctx.restore();
-    // 下
-    ctx.save();
-    ctx.globalAlpha = 0.85;
-    drawRose(ctx, x, H - margin * 0.82, sz, c);
-    ctx.restore();
-  }
-
-  // 左右辺（中）
-  for (const y of [H * 0.35, H * 0.5, H * 0.65]) {
-    const sz = y === H * 0.5 ? edgeSize : edgeSize * 0.75;
-    ctx.save(); ctx.globalAlpha = 0.82;
-    drawRose(ctx, margin * 0.82, y, sz, c);
-    ctx.restore();
-    ctx.save(); ctx.globalAlpha = 0.82;
-    drawRose(ctx, W - margin * 0.82, y, sz, c);
-    ctx.restore();
-  }
 }
 
 // ================================================================
@@ -467,7 +294,6 @@ export function drawAll(
     scheme, impactText, textPos, lineCount, intensity,
     burstEdge, halftone, textSize,
     watercolor, watercolorStrength,
-    flowerFrame, flowerColorId,
     sparkle, sparkleCount, sparkleColorId,
   } = opts;
 
@@ -549,15 +375,10 @@ export function drawAll(
     drawSparkles(ctx, W, H, sparkleCount, sparkleColorId);
   }
 
-  // --- 🌹 フラワーフレーム ---
-  if (flowerFrame) {
-    drawFlowerFrame(ctx, W, H, flowerColorId);
-  }
-
   // --- テキスト ---
   if (!impactText) return;
   const tSize = Math.round(W * (textSize / 100));
   const margin = 16;
-  if (textPos === "top"    || textPos === "both") drawPlacard(ctx, W, scheme, impactText, tSize, true,  margin);
-  if (textPos === "bottom" || textPos === "both") drawPlacard(ctx, W, scheme, impactText, tSize, false, margin);
+  if (textPos === "top")    drawPlacard(ctx, W, scheme, impactText, tSize, true,  margin);
+  if (textPos === "bottom") drawPlacard(ctx, W, scheme, impactText, tSize, false, margin);
 }

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { drawAll, SCHEMES, IMPACT_PRESETS, FLOWER_COLORS, SPARKLE_COLORS } from "./canvas";
+import { drawAll, SCHEMES, IMPACT_PRESETS, SPARKLE_COLORS } from "./canvas";
 import type { Scheme, DrawOptions } from "./canvas";
 
 function useWindowWidth() {
@@ -15,7 +15,6 @@ function useWindowWidth() {
 const TEXT_POSITIONS = [
   { id: "top"    as const, label: "上" },
   { id: "bottom" as const, label: "下" },
-  { id: "both"   as const, label: "両方" },
 ];
 
 const SIZE = 1080;
@@ -33,8 +32,6 @@ export default function App() {
   const [textSize, setTextSize]   = useState(12);
   const [watercolor, setWatercolor]             = useState(false);
   const [watercolorStrength, setWatercolorStrength] = useState(0.7);
-  const [flowerFrame, setFlowerFrame]           = useState(false);
-  const [flowerColorId, setFlowerColorId]       = useState("pink");
   const [sparkle, setSparkle]                   = useState(false);
   const [sparkleCount, setSparkleCount]         = useState(15);
   const [sparkleColorId, setSparkleColorId]     = useState("white");
@@ -50,11 +47,10 @@ export default function App() {
     drawAll(canvasRef.current, imgObj, {
       scheme, impactText, textPos, lineCount, intensity, burstEdge, halftone, textSize,
       watercolor, watercolorStrength,
-      flowerFrame, flowerColorId,
       sparkle, sparkleCount, sparkleColorId,
     });
   }, [imgObj, scheme, impactText, textPos, lineCount, intensity, burstEdge, halftone, textSize,
-      watercolor, watercolorStrength, flowerFrame, flowerColorId, sparkle, sparkleCount, sparkleColorId]);
+      watercolor, watercolorStrength, sparkle, sparkleCount, sparkleColorId]);
 
   useEffect(() => { render(); }, [render]);
 
@@ -203,26 +199,6 @@ export default function App() {
             {watercolor && (
               <SliderRow label="強さ" value={watercolorStrength} min={0.2} max={1.0} step={0.05}
                 display={Math.round(watercolorStrength * 100) + "%"} onChange={setWatercolorStrength} dark={dark} />
-            )}
-          </Panel>
-
-          <Panel dark={dark} label="🌹 フラワーフレーム">
-            <ToggleRow label="バラの飾り枠" value={flowerFrame} onChange={setFlowerFrame} dark={dark} />
-            {flowerFrame && (
-              <div>
-                <div style={{ fontSize: 10, color: dark ? "#666" : "#999", marginBottom: 6, letterSpacing: 2 }}>花の色</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 5 }}>
-                  {Object.entries(FLOWER_COLORS).map(([id, fc]) => (
-                    <button key={id} onClick={() => setFlowerColorId(id)} style={{
-                      padding: "8px 4px", fontSize: 12, fontWeight: 900, cursor: "pointer",
-                      border: `3px solid ${flowerColorId === id ? "#FFE600" : dark ? "#333" : "#ccc"}`,
-                      outline: flowerColorId === id ? "2px solid #111" : "none",
-                      background: fc.rose, color: "#fff",
-                      textShadow: "0 1px 2px rgba(0,0,0,0.5)",
-                    }}>{fc.label}</button>
-                  ))}
-                </div>
-              </div>
             )}
           </Panel>
 
