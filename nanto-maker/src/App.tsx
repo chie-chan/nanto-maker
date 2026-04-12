@@ -2,6 +2,16 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { drawAll, SCHEMES, IMPACT_PRESETS, FLOWER_COLORS, SPARKLE_COLORS } from "./canvas";
 import type { Scheme, DrawOptions } from "./canvas";
 
+function useWindowWidth() {
+  const [width, setWidth] = useState(window.innerWidth);
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return width;
+}
+
 const TEXT_POSITIONS = [
   { id: "top"    as const, label: "上" },
   { id: "bottom" as const, label: "下" },
@@ -32,6 +42,8 @@ export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const scheme: Scheme = SCHEMES[schemeIdx];
   const dark = scheme.bg === "#111111" || scheme.bg === "#0a0020";
+  const windowWidth = useWindowWidth();
+  const isMobile = windowWidth < 680;
 
   const render = useCallback(() => {
     if (!canvasRef.current) return;
@@ -76,15 +88,18 @@ export default function App() {
     <div style={{ minHeight: "100vh", background: bg, fontFamily: "'Arial Black','Helvetica Neue',sans-serif", color: text }}>
 
       {/* ── Header ── */}
-      <div style={{ background: "#FFE600", padding: "14px 24px", display: "flex", alignItems: "center", gap: 16, borderBottom: "4px solid #111" }}>
-        <div style={{ fontSize: 28, fontWeight: 900, color: "#111", letterSpacing: -1, lineHeight: 1 }}>なんと！？</div>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: 2 }}>衝撃SNS画像メーカー</div>
-        <div style={{ marginLeft: "auto", fontSize: 11, color: "#888" }}>for pets & daily life</div>
+      <div style={{ background: "#FFE600", padding: isMobile ? "10px 14px" : "14px 24px", display: "flex", alignItems: "center", gap: 10, borderBottom: "4px solid #111" }}>
+        <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, color: "#111", letterSpacing: -1, lineHeight: 1, whiteSpace: "nowrap" }}>なんと！？</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: 1 }}>衝撃SNS画像メーカー</div>
+        {!isMobile && <div style={{ marginLeft: "auto", fontSize: 11, color: "#888" }}>for pets & daily life</div>}
       </div>
 
       <div style={{
-        maxWidth: 1080, margin: "0 auto", padding: 20,
-        display: "grid", gridTemplateColumns: "1fr 300px", gap: 20, alignItems: "start",
+        maxWidth: 1080, margin: "0 auto", padding: isMobile ? 12 : 20,
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 300px",
+        gap: isMobile ? 12 : 20,
+        alignItems: "start",
       }}>
 
         {/* ── Canvas / Drop zone ── */}
@@ -112,8 +127,8 @@ export default function App() {
               <canvas ref={canvasRef} style={{ width: "100%", display: "block", border: "4px solid #111" }} />
               <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
                 <Btn onClick={() => { setImgSrc(null); setImgObj(null); }}>別の写真</Btn>
-                <Btn onClick={render}>シャッフル ↺</Btn>
-                <Btn primary onClick={handleDownload}>⬇ ダウンロード（1080px）</Btn>
+                <Btn onClick={render}>↺</Btn>
+                <Btn primary onClick={handleDownload}>⬇ {isMobile ? "保存" : "ダウンロード（1080px）"}</Btn>
               </div>
             </div>
           )}
@@ -218,10 +233,10 @@ export default function App() {
                 <SliderRow label="数" value={sparkleCount} min={5} max={40} step={1}
                   display={`${sparkleCount}個`} onChange={setSparkleCount} dark={dark} />
                 <div style={{ fontSize: 10, color: dark ? "#666" : "#999", marginBottom: 6, letterSpacing: 2 }}>色</div>
-                <div style={{ display: "flex", gap: 5 }}>
+                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                   {Object.entries(SPARKLE_COLORS).map(([id, sc]) => (
                     <button key={id} onClick={() => setSparkleColorId(id)} style={{
-                      flex: 1, padding: "6px 2px", fontSize: 11, fontWeight: 900, cursor: "pointer",
+                      flex: 1, minWidth: 48, padding: "8px 2px", fontSize: 11, fontWeight: 900, cursor: "pointer",
                       border: `3px solid ${sparkleColorId === id ? "#FFE600" : dark ? "#333" : "#ccc"}`,
                       outline: sparkleColorId === id ? "2px solid #111" : "none",
                       background: id === "rainbow"
@@ -273,15 +288,18 @@ function SliderRow({ label, value, min, max, step, onChange, display, dark }: {
 
 function ToggleRow({ label, value, onChange, dark }: { label: string; value: boolean; onChange: (v: boolean) => void; dark: boolean }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-      <span style={{ fontSize: 11, color: dark ? "#888" : "#666" }}>{label}</span>
-      <button onClick={() => onChange(!value)} style={{
-        width: 44, height: 22, border: "2px solid #111",
+    <div
+      onClick={() => onChange(!value)}
+      style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, cursor: "pointer", padding: "4px 0", WebkitTapHighlightColor: "transparent" }}
+    >
+      <span style={{ fontSize: 12, color: dark ? "#888" : "#666" }}>{label}</span>
+      <div style={{
+        width: 48, height: 26, border: "2px solid #111", flexShrink: 0,
         background: value ? "#FFE600" : dark ? "#222" : "#eee",
-        cursor: "pointer", position: "relative", padding: 0,
+        position: "relative",
       }}>
-        <div style={{ width: 14, height: 14, background: "#111", position: "absolute", top: 2, left: value ? 24 : 4, transition: "left 0.15s" }} />
-      </button>
+        <div style={{ width: 18, height: 18, background: "#111", position: "absolute", top: 2, left: value ? 26 : 4, transition: "left 0.15s" }} />
+      </div>
     </div>
   );
 }
