@@ -215,9 +215,7 @@ export default function App() {
                       flex: 1, minWidth: 48, padding: "8px 2px", fontSize: 11, fontWeight: 900, cursor: "pointer",
                       border: `3px solid ${sparkleColorId === id ? "#FFE600" : dark ? "#333" : "#ccc"}`,
                       outline: sparkleColorId === id ? "2px solid #111" : "none",
-                      background: id === "rainbow"
-                        ? "linear-gradient(90deg,#ff6b6b,#ffd700,#69ff69,#6bbfff,#c084fc)"
-                        : sc.color === "#ffffff" ? (dark ? "#333" : "#eee") : sc.color,
+                      background: sc.color === "#ffffff" ? (dark ? "#333" : "#eee") : sc.color,
                       color: id === "white" ? "#111" : "#fff",
                       textShadow: "0 1px 2px rgba(0,0,0,0.4)",
                     }}>{sc.label}</button>

@@ -24,7 +24,6 @@ export const SPARKLE_COLORS: Record<string, { color: string; label: string }> = 
   white:  { color: "#ffffff", label: "白" },
   gold:   { color: "#ffd700", label: "金" },
   pink:   { color: "#ffb0d0", label: "桜" },
-  rainbow: { color: "rainbow", label: "虹" },
 };
 
 export interface DrawOptions {
@@ -137,7 +136,6 @@ function applyWatercolor(
 // ---- キラキラ（✨）描画 ----
 // ================================================================
 
-const RAINBOW_HUE = ["#ff6b6b", "#ffd700", "#69ff69", "#66bbff", "#c084fc", "#ff8ad8"];
 
 function drawSparkle(
   ctx: CanvasRenderingContext2D,
@@ -205,7 +203,6 @@ function drawSparkles(
   count: number,
   colorId: string
 ) {
-  const isRainbow = colorId === "rainbow";
   const baseColor = SPARKLE_COLORS[colorId]?.color ?? "#ffffff";
 
   for (let i = 0; i < count; i++) {
@@ -218,9 +215,7 @@ function drawSparkles(
     const y    = rng(2) * H;
     const size = (rng(3) * 0.5 + 0.28) * W * 0.023;
     const rot  = rng(4) * Math.PI;
-    const color = isRainbow
-      ? RAINBOW_HUE[Math.floor(rng(5) * RAINBOW_HUE.length)]
-      : baseColor;
+    const color = baseColor;
 
     ctx.save();
     ctx.globalAlpha = 0.62 + rng(6) * 0.38;
