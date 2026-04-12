@@ -19,6 +19,22 @@ export const SCHEMES: Scheme[] = [
 
 export const IMPACT_PRESETS = ["なんと！？", "マジか！", "えっ！？", "信じられない！", "ウソだろ！", "やばすぎる", "天才！！"];
 
+// ---- バラカラープリセット ----
+export const FLOWER_COLORS: Record<string, { rose: string; inner: string; center: string; leaf: string; label: string }> = {
+  pink:   { rose: "#ff8ab4", inner: "#e0507a", center: "#b02858", leaf: "#3a7a30", label: "ピンク" },
+  red:    { rose: "#e03050", inner: "#a01028", center: "#700018", leaf: "#2a6020", label: "レッド" },
+  purple: { rose: "#c07ad4", inner: "#9040b0", center: "#602080", leaf: "#3a7a30", label: "パープル" },
+  gold:   { rose: "#e8c048", inner: "#c89020", center: "#a06800", leaf: "#6a7020", label: "ゴールド" },
+};
+
+// ---- キラキラカラープリセット ----
+export const SPARKLE_COLORS: Record<string, { color: string; label: string }> = {
+  white:  { color: "#ffffff", label: "白" },
+  gold:   { color: "#ffd700", label: "金" },
+  pink:   { color: "#ffb0d0", label: "桜" },
+  rainbow: { color: "rainbow", label: "虹" },
+};
+
 export interface DrawOptions {
   scheme: Scheme;
   impactText: string;
@@ -30,9 +46,16 @@ export interface DrawOptions {
   textSize: number;
   watercolor: boolean;
   watercolorStrength: number;
+  flowerFrame: boolean;
+  flowerColorId: string;
+  sparkle: boolean;
+  sparkleCount: number;
+  sparkleColorId: string;
 }
 
-// ---- 水彩エフェクト ヘルパー ----
+// ================================================================
+// ---- 水彩エフェクト ----
+// ================================================================
 
 function clamp(v: number): number {
   return Math.min(255, Math.max(0, Math.round(v)));
@@ -44,8 +67,7 @@ function posterizeVal(v: number, levels: number): number {
 
 function makeCanvas(w: number, h: number): HTMLCanvasElement {
   const c = document.createElement("canvas");
-  c.width = w;
-  c.height = h;
+  c.width = w; c.height = h;
   return c;
 }
 
@@ -55,15 +77,11 @@ function applyWatercolor(
   dx: number, dy: number, dw: number, dh: number,
   strength: number
 ) {
-  const W = Math.round(dw);
-  const H = Math.round(dh);
-
-  // ---- 元画像をオフスクリーンに描画 ----
+  const W = Math.round(dw), H = Math.round(dh);
   const src = makeCanvas(W, H);
   const sc = src.getContext("2d")!;
   sc.drawImage(img, 0, 0, W, H);
 
-  // ---- 大きいぼかし（絵の具が広がる感じ） ----
   const bAmt = Math.max(3, Math.round(W * 0.015 * strength));
   const blur1 = makeCanvas(W, H);
   const b1 = blur1.getContext("2d")!;
@@ -71,14 +89,12 @@ function applyWatercolor(
   b1.drawImage(src, 0, 0);
   b1.filter = "none";
 
-  // ---- 小さいぼかし（細部を残す） ----
   const blur2 = makeCanvas(W, H);
   const b2 = blur2.getContext("2d")!;
   b2.filter = `blur(${Math.max(1, Math.round(bAmt * 0.3))}px)`;
   b2.drawImage(src, 0, 0);
   b2.filter = "none";
 
-  // ---- 2つのぼかしをブレンド ----
   const combined = makeCanvas(W, H);
   const cc = combined.getContext("2d")!;
   cc.drawImage(blur1, 0, 0);
@@ -86,18 +102,14 @@ function applyWatercolor(
   cc.drawImage(blur2, 0, 0);
   cc.globalAlpha = 1;
 
-  // ---- ポスタリゼーション（色を平坦化 → 水彩の塗りムラ感） ----
   const imgd = cc.getImageData(0, 0, W, H);
   const d = imgd.data;
-  const levels = Math.round(6 - strength * 2.5); // strength大 → 少ない色数
-
+  const levels = Math.round(6 - strength * 2.5);
   for (let i = 0; i < d.length; i += 4) {
     d[i]     = posterizeVal(d[i],     levels);
     d[i + 1] = posterizeVal(d[i + 1], levels);
     d[i + 2] = posterizeVal(d[i + 2], levels);
   }
-
-  // ---- 水彩紙のテクスチャ（ランダムノイズ） ----
   const nAmp = 22 * strength;
   for (let i = 0; i < d.length; i += 4) {
     const n = (Math.random() - 0.5) * nAmp;
@@ -105,24 +117,17 @@ function applyWatercolor(
     d[i + 1] = clamp(d[i + 1] + n);
     d[i + 2] = clamp(d[i + 2] + n);
   }
-
-  // ---- 色の彩度を少し上げる（水彩らしい鮮やかさ） ----
+  const sat = 1 + 0.25 * strength;
   for (let i = 0; i < d.length; i += 4) {
-    const r = d[i], g = d[i + 1], b = d[i + 2];
-    const avg = (r + g + b) / 3;
-    const sat = 1 + 0.25 * strength;
-    d[i]     = clamp(avg + (r - avg) * sat);
-    d[i + 1] = clamp(avg + (g - avg) * sat);
-    d[i + 2] = clamp(avg + (b - avg) * sat);
+    const avg = (d[i] + d[i + 1] + d[i + 2]) / 3;
+    d[i]     = clamp(avg + (d[i]     - avg) * sat);
+    d[i + 1] = clamp(avg + (d[i + 1] - avg) * sat);
+    d[i + 2] = clamp(avg + (d[i + 2] - avg) * sat);
   }
-
   cc.putImageData(imgd, 0, 0);
 
-  // ---- メインキャンバスへ描画 ----
   ctx.save();
   ctx.drawImage(combined, dx, dy, dw, dh);
-
-  // ---- エッジ強調（絵の具が縁に溜まる感じ） ----
   const edge = makeCanvas(W, H);
   const ec = edge.getContext("2d")!;
   ec.filter = "blur(1px)";
@@ -131,17 +136,275 @@ function applyWatercolor(
   ctx.globalAlpha = 0.18 * strength;
   ctx.globalCompositeOperation = "multiply";
   ctx.drawImage(edge, dx, dy, dw, dh);
-
-  // ---- 白い紙感のオーバーレイ ----
   ctx.globalCompositeOperation = "screen";
   ctx.globalAlpha = 0.06;
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(dx, dy, dw, dh);
+  ctx.restore();
+}
+
+// ================================================================
+// ---- バラ描画 ----
+// ================================================================
+
+function drawRose(
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number,
+  size: number,
+  c: { rose: string; inner: string; center: string; leaf: string }
+) {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // 葉（バラの後ろ）
+  for (const side of [-1, 1] as const) {
+    ctx.save();
+    ctx.fillStyle = c.leaf;
+    ctx.globalAlpha = 0.82;
+    ctx.beginPath();
+    ctx.moveTo(0, size * 0.32);
+    ctx.bezierCurveTo(
+      side * size * 0.48, size * 0.48,
+      side * size * 0.72, size * 0.88,
+      side * size * 0.42, size * 1.12
+    );
+    ctx.bezierCurveTo(
+      side * size * 0.12, size * 0.88,
+      side * size * 0.04, size * 0.62,
+      0, size * 0.32
+    );
+    ctx.closePath();
+    ctx.fill();
+    // 葉脈
+    ctx.strokeStyle = c.center;
+    ctx.globalAlpha = 0.3;
+    ctx.lineWidth = size * 0.022;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(0, size * 0.32);
+    ctx.bezierCurveTo(
+      side * size * 0.3, size * 0.62,
+      side * size * 0.38, size * 0.92,
+      side * size * 0.42, size * 1.12
+    );
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 外側の花びら（5枚）
+  for (let i = 0; i < 5; i++) {
+    ctx.save();
+    ctx.rotate((i / 5) * Math.PI * 2);
+    ctx.fillStyle = c.rose;
+    ctx.globalAlpha = 0.87;
+    ctx.beginPath();
+    ctx.ellipse(0, -size * 0.46, size * 0.26, size * 0.48, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // 内側の花びら（5枚・少し回転）
+  for (let i = 0; i < 5; i++) {
+    ctx.save();
+    ctx.rotate((i / 5) * Math.PI * 2 + Math.PI / 5);
+    ctx.fillStyle = c.inner;
+    ctx.globalAlpha = 0.93;
+    ctx.beginPath();
+    ctx.ellipse(0, -size * 0.26, size * 0.17, size * 0.28, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // 中心
+  ctx.fillStyle = c.center;
+  ctx.globalAlpha = 1;
+  ctx.beginPath();
+  ctx.arc(0, 0, size * 0.15, 0, Math.PI * 2);
+  ctx.fill();
 
   ctx.restore();
 }
 
-// ---- プラカードテキスト描画 ----
+// ================================================================
+// ---- フラワーフレーム ----
+// ================================================================
+
+function drawFlowerFrame(
+  ctx: CanvasRenderingContext2D,
+  W: number, H: number,
+  colorId: string
+) {
+  const c = FLOWER_COLORS[colorId] ?? FLOWER_COLORS.pink;
+  const cornerSize = W * 0.085;
+  const edgeSize   = W * 0.058;
+  const margin     = cornerSize * 0.72;
+
+  // ---- つる（上下辺のウェーブライン）----
+  ctx.save();
+  ctx.strokeStyle = c.leaf;
+  ctx.lineWidth   = W * 0.0035;
+  ctx.globalAlpha = 0.42;
+  ctx.lineCap     = "round";
+
+  for (const edge of ["top", "bottom"] as const) {
+    const y0 = edge === "top" ? margin * 0.55 : H - margin * 0.55;
+    const amp = margin * 0.32;
+    ctx.beginPath();
+    ctx.moveTo(margin, y0);
+    const steps = 8;
+    for (let s = 0; s < steps; s++) {
+      const x1 = margin + (W - margin * 2) * (s + 0.5) / steps;
+      const x2 = margin + (W - margin * 2) * (s + 1)   / steps;
+      const yc = y0 + amp * (s % 2 === 0 ? -1 : 1);
+      ctx.quadraticCurveTo(x1, yc, x2, y0);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // ---- バラ配置 ----
+
+  // 四隅（大）
+  const corners: [number, number][] = [
+    [margin, margin],
+    [W - margin, margin],
+    [margin, H - margin],
+    [W - margin, H - margin],
+  ];
+  for (const [x, y] of corners) {
+    ctx.save();
+    ctx.globalAlpha = 0.93;
+    drawRose(ctx, x, y, cornerSize, c);
+    ctx.restore();
+  }
+
+  // 上下辺（中・小）
+  const topBottomX = [W * 0.28, W * 0.5, W * 0.72];
+  for (const x of topBottomX) {
+    const sz = x === W * 0.5 ? edgeSize : edgeSize * 0.78;
+    // 上
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    drawRose(ctx, x, margin * 0.82, sz, c);
+    ctx.restore();
+    // 下
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    drawRose(ctx, x, H - margin * 0.82, sz, c);
+    ctx.restore();
+  }
+
+  // 左右辺（中）
+  for (const y of [H * 0.35, H * 0.5, H * 0.65]) {
+    const sz = y === H * 0.5 ? edgeSize : edgeSize * 0.75;
+    ctx.save(); ctx.globalAlpha = 0.82;
+    drawRose(ctx, margin * 0.82, y, sz, c);
+    ctx.restore();
+    ctx.save(); ctx.globalAlpha = 0.82;
+    drawRose(ctx, W - margin * 0.82, y, sz, c);
+    ctx.restore();
+  }
+}
+
+// ================================================================
+// ---- キラキラ（✨）描画 ----
+// ================================================================
+
+const RAINBOW_HUE = ["#ff6b6b", "#ffd700", "#69ff69", "#6bf", "#c084fc", "#ff8ad8"];
+
+function drawSparkle(
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number,
+  size: number,
+  color: string,
+  rotation: number
+) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rotation);
+
+  // グロー
+  const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 1.9);
+  grd.addColorStop(0, color + "cc");
+  grd.addColorStop(1, color + "00");
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.arc(0, 0, size * 1.9, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 長い光芒（4方向）
+  ctx.fillStyle = color;
+  for (let i = 0; i < 4; i++) {
+    ctx.save();
+    ctx.rotate((i / 4) * Math.PI * 2);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(size * 0.13, size * 0.36);
+    ctx.lineTo(0, size);
+    ctx.lineTo(-size * 0.13, size * 0.36);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // 短い光芒（斜め4方向）
+  ctx.globalAlpha = 0.52;
+  for (let i = 0; i < 4; i++) {
+    ctx.save();
+    ctx.rotate((i / 4) * Math.PI * 2 + Math.PI / 4);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(size * 0.09, size * 0.21);
+    ctx.lineTo(0, size * 0.56);
+    ctx.lineTo(-size * 0.09, size * 0.21);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // 中心の白丸
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(0, 0, size * 0.16, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawSparkles(
+  ctx: CanvasRenderingContext2D,
+  W: number, H: number,
+  count: number,
+  colorId: string
+) {
+  const isRainbow = colorId === "rainbow";
+  const baseColor = SPARKLE_COLORS[colorId]?.color ?? "#ffffff";
+
+  for (let i = 0; i < count; i++) {
+    // 疑似ランダム（シード固定なので再描画で位置が変わらない）
+    const rng = (n: number) => {
+      const x = Math.sin(i * 9301 + n * 49297 + 233) * 43758.5453;
+      return x - Math.floor(x);
+    };
+    const x    = rng(1) * W;
+    const y    = rng(2) * H;
+    const size = (rng(3) * 0.5 + 0.28) * W * 0.023;
+    const rot  = rng(4) * Math.PI;
+    const color = isRainbow
+      ? RAINBOW_HUE[Math.floor(rng(5) * RAINBOW_HUE.length)]
+      : baseColor;
+
+    ctx.save();
+    ctx.globalAlpha = 0.62 + rng(6) * 0.38;
+    drawSparkle(ctx, x, y, size, color, rot);
+    ctx.restore();
+  }
+}
+
+// ================================================================
+// ---- プラカードテキスト ----
+// ================================================================
 
 function drawPlacard(
   ctx: CanvasRenderingContext2D,
@@ -191,7 +454,9 @@ function drawPlacard(
   ctx.restore();
 }
 
+// ================================================================
 // ---- メイン描画 ----
+// ================================================================
 
 export function drawAll(
   canvas: HTMLCanvasElement,
@@ -200,7 +465,10 @@ export function drawAll(
 ) {
   const {
     scheme, impactText, textPos, lineCount, intensity,
-    burstEdge, halftone, textSize, watercolor, watercolorStrength,
+    burstEdge, halftone, textSize,
+    watercolor, watercolorStrength,
+    flowerFrame, flowerColorId,
+    sparkle, sparkleCount, sparkleColorId,
   } = opts;
 
   const ctx = canvas.getContext("2d")!;
@@ -218,9 +486,8 @@ export function drawAll(
     ctx.fillStyle = scheme.line + "22";
     for (let x = 0; x < W; x += dotGap) {
       for (let y = 0; y < H; y += dotGap) {
-        const r = dotGap * 0.18;
         ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.arc(x, y, dotGap * 0.18, 0, Math.PI * 2);
         ctx.fill();
       }
     }
@@ -244,9 +511,9 @@ export function drawAll(
     ctx.fill();
   }
 
-  // --- 集中線（水彩時は薄め） ---
+  // --- 集中線 ---
   ctx.strokeStyle = scheme.line;
-  const lineAlphaMult = watercolor ? 0.4 : 1.0;
+  const lineAlpha = watercolor ? 0.4 : 1.0;
   for (let i = 0; i < lineCount; i++) {
     const baseAngle = (i / lineCount) * Math.PI * 2;
     const jitter = (Math.random() - 0.5) * 0.08;
@@ -254,7 +521,7 @@ export function drawAll(
     const gap = (0.2 + Math.random() * 0.4) * ((Math.PI * 2) / lineCount);
     const startR = 25 + Math.random() * 20;
     ctx.lineWidth = (0.6 + Math.random() * 2.5) * intensity;
-    ctx.globalAlpha = (0.5 + Math.random() * 0.5) * lineAlphaMult;
+    ctx.globalAlpha = (0.5 + Math.random() * 0.5) * lineAlpha;
     ctx.beginPath();
     ctx.moveTo(cx + Math.cos(angle) * startR, cy + Math.sin(angle) * startR);
     ctx.lineTo(cx + Math.cos(angle + gap / 2) * maxDist, cy + Math.sin(angle + gap / 2) * maxDist);
@@ -262,7 +529,7 @@ export function drawAll(
   }
   ctx.globalAlpha = 1;
 
-  // --- 画像（水彩エフェクト適用） ---
+  // --- 画像（水彩エフェクト含む）---
   if (img) {
     const pad = 0.08;
     const scale = Math.min((W * (1 - pad * 2)) / img.width, (H * (1 - pad * 2)) / img.height);
@@ -270,7 +537,6 @@ export function drawAll(
     const ih = img.height * scale;
     const ix = (W - iw) / 2;
     const iy = (H - ih) / 2;
-
     if (watercolor) {
       applyWatercolor(ctx, img, ix, iy, iw, ih, watercolorStrength);
     } else {
@@ -278,15 +544,20 @@ export function drawAll(
     }
   }
 
+  // --- ✨キラキラ ---
+  if (sparkle) {
+    drawSparkles(ctx, W, H, sparkleCount, sparkleColorId);
+  }
+
+  // --- 🌹 フラワーフレーム ---
+  if (flowerFrame) {
+    drawFlowerFrame(ctx, W, H, flowerColorId);
+  }
+
   // --- テキスト ---
   if (!impactText) return;
   const tSize = Math.round(W * (textSize / 100));
   const margin = 16;
-
-  if (textPos === "top" || textPos === "both") {
-    drawPlacard(ctx, W, scheme, impactText, tSize, true, margin);
-  }
-  if (textPos === "bottom" || textPos === "both") {
-    drawPlacard(ctx, W, scheme, impactText, tSize, false, margin);
-  }
+  if (textPos === "top"    || textPos === "both") drawPlacard(ctx, W, scheme, impactText, tSize, true,  margin);
+  if (textPos === "bottom" || textPos === "both") drawPlacard(ctx, W, scheme, impactText, tSize, false, margin);
 }
