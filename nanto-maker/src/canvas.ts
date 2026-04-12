@@ -370,6 +370,20 @@ export function drawAll(
     drawSparkles(ctx, W, H, sparkleCount, sparkleColorId);
   }
 
+  // --- ウォーターマーク ---
+  const wmSize = Math.round(W * 0.024);
+  ctx.save();
+  ctx.font = `italic ${wmSize}px 'Georgia', 'Times New Roman', serif`;
+  ctx.textAlign = "right";
+  ctx.textBaseline = "bottom";
+  ctx.lineJoin = "round";
+  ctx.lineWidth = wmSize * 0.18;
+  ctx.strokeStyle = "rgba(0,0,0,0.45)";
+  ctx.strokeText("Aiko,animal AI STUDIO", W - 18, H - 16);
+  ctx.fillStyle = "rgba(255,255,255,0.75)";
+  ctx.fillText("Aiko,animal AI STUDIO", W - 18, H - 16);
+  ctx.restore();
+
   // --- テキスト ---
   if (!impactText) return;
   const tSize = Math.round(W * (textSize / 100));
