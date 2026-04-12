@@ -137,7 +137,7 @@ function applyWatercolor(
 // ---- キラキラ（✨）描画 ----
 // ================================================================
 
-const RAINBOW_HUE = ["#ff6b6b", "#ffd700", "#69ff69", "#6bf", "#c084fc", "#ff8ad8"];
+const RAINBOW_HUE = ["#ff6b6b", "#ffd700", "#69ff69", "#66bbff", "#c084fc", "#ff8ad8"];
 
 function drawSparkle(
   ctx: CanvasRenderingContext2D,
