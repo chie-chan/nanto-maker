@@ -104,9 +104,10 @@ export default function App() {
 
       {/* ── Header ── */}
       <div style={{ background: "#FFE600", padding: isMobile ? "10px 14px" : "14px 24px", display: "flex", alignItems: "center", gap: 10, borderBottom: "4px solid #111" }}>
+        <img src="/aiko-logo.png" alt="Aiko,animal" style={{ height: isMobile ? 28 : 36, objectFit: "contain" }} />
         <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, color: "#111", letterSpacing: -1, lineHeight: 1, whiteSpace: "nowrap" }}>なんと！？</div>
         <div style={{ fontSize: 10, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: 1 }}>衝撃SNS画像メーカー</div>
-        {!isMobile && <div style={{ marginLeft: "auto", fontSize: 11, color: "#888" }}>for pets & daily life</div>}
+        <div style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>Aiko,animal AI STUDIO</div>
       </div>
 
       <div style={{
