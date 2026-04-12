@@ -83,31 +83,20 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", background: bg, fontFamily: "'Arial Black','Helvetica Neue',sans-serif", color: text }}>
 
-      {/* ── Promo Banner ── */}
-      <a
-        href="https://aikoanimal.base.shop/"
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          display: "flex", alignItems: "center", justifyContent: "center",
-          gap: 14, padding: "10px 20px",
-          background: "#fffaf6", borderBottom: "1px solid #e8d8c8",
-          textDecoration: "none",
-        }}
-      >
-        <img src="/aiko-logo.png" alt="Aiko,animal" style={{ height: 40, objectFit: "contain" }} />
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#555", letterSpacing: 1 }}>Aiko,animal AI STUDIO</div>
-          <div style={{ fontSize: 11, color: "#e07050", fontWeight: 700 }}>🐾 うちの子グッズはこちら →</div>
-        </div>
-      </a>
-
       {/* ── Header ── */}
       <div style={{ background: "#FFE600", padding: isMobile ? "10px 14px" : "14px 24px", display: "flex", alignItems: "center", gap: 10, borderBottom: "4px solid #111" }}>
         <img src="/aiko-logo.png" alt="Aiko,animal" style={{ height: isMobile ? 28 : 36, objectFit: "contain" }} />
         <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, color: "#111", letterSpacing: -1, lineHeight: 1, whiteSpace: "nowrap" }}>なんと！？</div>
         <div style={{ fontSize: 10, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: 1 }}>衝撃SNS画像メーカー</div>
-        <div style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>Aiko,animal AI STUDIO</div>
+        <a
+          href="https://aikoanimal.base.shop/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ marginLeft: "auto", textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "flex-end" }}
+        >
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>Aiko,animal AI STUDIO</div>
+          <div style={{ fontSize: 11, color: "#e07050", fontWeight: 700, whiteSpace: "nowrap" }}>🐾 うちの子グッズはこちら →</div>
+        </a>
       </div>
 
       <div style={{
