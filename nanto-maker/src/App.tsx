@@ -261,6 +261,39 @@ export default function App() {
         onChange={e => handleFile(e.target.files?.[0] ?? null)} />
       </>
       )}
+
+      {/* ── Footer ── */}
+      <footer style={{
+        marginTop: 40, borderTop: `3px solid ${dark ? "#222" : "#e0d8cc"}`,
+        padding: "20px 24px", textAlign: "center",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 10,
+        background: dark ? "#0a0010" : "#f0ece4",
+      }}>
+        <a
+          href="https://x.com/aiaiaigirl"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}
+        >
+          <img src="/aiko-logo.png" alt="Aiko,animal" style={{ height: 28, objectFit: "contain" }} />
+          <span style={{ fontSize: 13, fontWeight: 900, color: dark ? "#fff" : "#111", letterSpacing: 0.5 }}>
+            Created by <span style={{ color: "#e07050" }}>Aiko,animal</span>
+          </span>
+          <span style={{ fontSize: 11, color: "#888" }}>@aiaiaigirl</span>
+        </a>
+        <p style={{
+          fontSize: 11, color: dark ? "#555" : "#999", lineHeight: 1.7,
+          maxWidth: 480, margin: 0,
+        }}>
+          本ツールで作成した画像の利用は自己責任でお願いします。<br />
+          肖像権・著作権など第三者の権利を侵害しないようご注意ください。<br />
+          Aiko,animal は画像の利用によって生じたいかなる損害についても責任を負いません。
+        </p>
+        <p style={{ fontSize: 10, color: dark ? "#444" : "#bbb", margin: 0 }}>
+          © {new Date().getFullYear()} Aiko,animal AI STUDIO
+        </p>
+      </footer>
+
     </div>
   );
 }
