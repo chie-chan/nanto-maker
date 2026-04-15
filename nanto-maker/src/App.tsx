@@ -81,7 +81,7 @@ export default function App() {
 
   const bg   = dark ? "#0a0010" : "#f0ece4";
   const text = dark ? "#fff" : "#111";
-  const [tab, setTab] = useState<"nanto" | "kourin">("nanto");
+  const [tab, setTab] = useState<"nanto" | "kourin">("kourin");
 
   return (
     <div style={{ minHeight: "100vh", background: bg, fontFamily: "'Arial Black','Helvetica Neue',sans-serif", color: text }}>
@@ -89,8 +89,8 @@ export default function App() {
       {/* ── Header ── */}
       <div style={{ background: "#FFE600", padding: isMobile ? "10px 14px" : "14px 24px", display: "flex", alignItems: "center", gap: 10, borderBottom: "4px solid #111" }}>
         <img src="/aiko-logo.png" alt="Aiko,animal" style={{ height: isMobile ? 28 : 36, objectFit: "contain" }} />
-        <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, color: "#111", letterSpacing: -1, lineHeight: 1, whiteSpace: "nowrap" }}>なんと！？</div>
-        <div style={{ fontSize: 10, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: 1 }}>衝撃SNS画像メーカー</div>
+        <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, color: "#111", letterSpacing: -1, lineHeight: 1, whiteSpace: "nowrap" }}>うちのこメーカー</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: 1 }}>SNS画像メーカー</div>
         <a
           href="https://aikoanimal.base.shop/"
           target="_blank"
@@ -104,7 +104,7 @@ export default function App() {
 
       {/* ── Tabs ── */}
       <div style={{ display: "flex", borderBottom: "3px solid #111", background: "#FFE600" }}>
-        {([["nanto", "⚡ なんとメーカー"], ["kourin", "🐾 うちの子降臨メーカー"]] as const).map(([id, label]) => (
+        {([["kourin", "🐾 うちの子降臨メーカー"], ["nanto", "⚡ なんとメーカー"]] as const).map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)} style={{
             padding: isMobile ? "8px 12px" : "10px 22px",
             fontSize: isMobile ? 12 : 14, fontWeight: 900,
