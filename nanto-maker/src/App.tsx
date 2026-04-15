@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { drawAll, SCHEMES, IMPACT_PRESETS, SPARKLE_COLORS } from "./canvas";
 import type { Scheme, DrawOptions } from "./canvas";
-import FaceHame from "./FaceHame";
+
 
 function useWindowWidth() {
   const [width, setWidth] = useState(window.innerWidth);
@@ -80,8 +80,6 @@ export default function App() {
 
   const bg   = dark ? "#0a0010" : "#f0ece4";
   const text = dark ? "#fff" : "#111";
-  const [tab, setTab] = useState<"nanto" | "facehame">("nanto");
-
   return (
     <div style={{ minHeight: "100vh", background: bg, fontFamily: "'Arial Black','Helvetica Neue',sans-serif", color: text }}>
 
@@ -101,24 +99,6 @@ export default function App() {
         </a>
       </div>
 
-      {/* ── Tabs ── */}
-      <div style={{ display: "flex", borderBottom: `3px solid #111`, background: "#FFE600" }}>
-        {([["nanto", "⚡ なんとメーカー"], ["facehame", "🌸 顔ハメメーカー"]] as const).map(([id, label]) => (
-          <button key={id} onClick={() => setTab(id)}
-            style={{
-              padding: isMobile ? "8px 14px" : "10px 24px",
-              fontSize: isMobile ? 13 : 15, fontWeight: 900,
-              border: "none", borderBottom: tab === id ? "3px solid #e07050" : "3px solid transparent",
-              background: tab === id ? "#fff" : "transparent",
-              cursor: "pointer", color: "#111", marginBottom: -3,
-            }}>{label}</button>
-        ))}
-      </div>
-
-      {tab === "facehame" ? (
-        <FaceHame isMobile={isMobile} dark={dark} text={text} bg={bg} />
-      ) : (
-      <>
       <div style={{
         maxWidth: 1080, margin: "0 auto", padding: isMobile ? 12 : 20,
         display: "grid",
@@ -259,8 +239,6 @@ export default function App() {
 
       <input id="fi" type="file" accept="image/*" style={{ display: "none" }}
         onChange={e => handleFile(e.target.files?.[0] ?? null)} />
-      </>
-      )}
     </div>
   );
 }
