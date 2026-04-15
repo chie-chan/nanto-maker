@@ -166,14 +166,14 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
   const handleRemoveBg = async () => {
     if (!petFile) return;
     setLoading(true);
-    setProgress("AIモデルを読み込み中…（初回は少し時間がかかります）");
+    setProgress("背景除去の準備中です…しばらくお待ちください（初回のみ時間がかかります）");
     try {
       const blob = await removeBackground(petFile, {
         progress: (key: string, current: number, total: number) => {
           if (key === "compute:inference") {
             setProgress(`背景を除去中… ${Math.round((current / total) * 100)}%`);
           } else if (key.startsWith("fetch")) {
-            setProgress(`AIモデルをダウンロード中… ${Math.round((current / total) * 100)}%`);
+            setProgress(`背景除去の準備中です… ${Math.round((current / total) * 100)}%（初回のみ）`);
           }
         },
       });
