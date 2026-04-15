@@ -189,10 +189,21 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
   const handleDownload = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const a = document.createElement("a");
-    a.download = `kourin-${Date.now()}.png`;
-    a.href = canvas.toDataURL("image/png");
-    a.click();
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+      const filename = `kourin-${Date.now()}.png`;
+      const file = new File([blob], filename, { type: "image/png" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        try { await navigator.share({ files: [file] }); } catch (_) { /* キャンセル */ }
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.download = filename;
+        a.href = url;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    }, "image/png");
   };
 
   const panel  = dark ? "#1a1a2e" : "#fff";

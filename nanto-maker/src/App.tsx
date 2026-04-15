@@ -73,10 +73,21 @@ export default function App() {
 
   const handleDownload = () => {
     if (!canvasRef.current) return;
-    const a = document.createElement("a");
-    a.download = `nanto-${Date.now()}.png`;
-    a.href = canvasRef.current.toDataURL("image/png");
-    a.click();
+    canvasRef.current.toBlob(async (blob) => {
+      if (!blob) return;
+      const filename = `nanto-${Date.now()}.png`;
+      const file = new File([blob], filename, { type: "image/png" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        try { await navigator.share({ files: [file] }); } catch (_) { /* キャンセル */ }
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.download = filename;
+        a.href = url;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    }, "image/png");
   };
 
   const bg   = dark ? "#0a0010" : "#f0ece4";
