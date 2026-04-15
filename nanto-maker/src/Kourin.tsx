@@ -25,6 +25,16 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // タッチ・マウス操作用のref（再レンダリングなしで追跡）
+  const dragRef = useRef({
+    dragging: false,
+    lastX: 0,
+    lastY: 0,
+    pinching: false,
+    lastDist: 0,
+    initScale: 0.6,
+  });
+
   const render = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || !bgSrc) return;
@@ -62,6 +72,83 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
   }, [bgSrc, removedSrc, scale, offsetX, offsetY, opacity]);
 
   useEffect(() => { render(); }, [render]);
+
+  // 画面座標 → offset単位への変換
+  const toOffsetUnit = (screenDelta: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return 0;
+    const displayW = canvas.getBoundingClientRect().width;
+    return screenDelta * (100 / displayW);
+  };
+
+  // ── タッチイベント ──
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (!removedSrc) return;
+    e.preventDefault();
+    const touches = e.touches;
+    if (touches.length === 1) {
+      dragRef.current.dragging = true;
+      dragRef.current.lastX = touches[0].clientX;
+      dragRef.current.lastY = touches[0].clientY;
+    } else if (touches.length === 2) {
+      dragRef.current.dragging = false;
+      dragRef.current.pinching = true;
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      dragRef.current.lastDist = Math.hypot(dx, dy);
+      dragRef.current.initScale = scale;
+    }
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!removedSrc) return;
+    e.preventDefault();
+    const touches = e.touches;
+
+    if (dragRef.current.pinching && touches.length === 2) {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const ratio = dist / dragRef.current.lastDist;
+      const newScale = Math.min(1.5, Math.max(0.1, dragRef.current.initScale * ratio));
+      setScale(newScale);
+      dragRef.current.initScale = newScale;
+      dragRef.current.lastDist = dist;
+
+    } else if (dragRef.current.dragging && touches.length === 1) {
+      const dx = touches[0].clientX - dragRef.current.lastX;
+      const dy = touches[0].clientY - dragRef.current.lastY;
+      setOffsetX(prev => Math.min(50, Math.max(-50, prev + toOffsetUnit(dx))));
+      setOffsetY(prev => Math.min(50, Math.max(-50, prev + toOffsetUnit(dy))));
+      dragRef.current.lastX = touches[0].clientX;
+      dragRef.current.lastY = touches[0].clientY;
+    }
+  };
+
+  const onTouchEnd = () => {
+    dragRef.current.dragging = false;
+    dragRef.current.pinching = false;
+  };
+
+  // ── マウスイベント（PC用） ──
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (!removedSrc) return;
+    dragRef.current.dragging = true;
+    dragRef.current.lastX = e.clientX;
+    dragRef.current.lastY = e.clientY;
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!dragRef.current.dragging || !removedSrc) return;
+    const dx = e.clientX - dragRef.current.lastX;
+    const dy = e.clientY - dragRef.current.lastY;
+    setOffsetX(prev => Math.min(50, Math.max(-50, prev + toOffsetUnit(dx))));
+    setOffsetY(prev => Math.min(50, Math.max(-50, prev + toOffsetUnit(dy))));
+    dragRef.current.lastX = e.clientX;
+    dragRef.current.lastY = e.clientY;
+  };
+
+  const onMouseUp = () => { dragRef.current.dragging = false; };
 
   const handleBgFile = (file: File | null) => {
     if (!file || !file.type.startsWith("image/")) return;
@@ -116,9 +203,36 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
     marginBottom: 6, display: "block" as const,
   };
 
-  // ── キャンバス要素（共通） ──
+  // ── キャンバス ──
   const canvasEl = bgSrc ? (
-    <canvas ref={canvasRef} style={{ width: "100%", display: "block", borderRadius: 4, border: `1px solid ${border}` }} />
+    <div style={{ position: "relative" }}>
+      <canvas
+        ref={canvasRef}
+        style={{
+          width: "100%", display: "block", borderRadius: 4,
+          border: `1px solid ${border}`,
+          cursor: removedSrc ? "grab" : "default",
+          touchAction: "none",
+        }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+      />
+      {removedSrc && (
+        <div style={{
+          position: "absolute", bottom: 8, left: 0, right: 0,
+          textAlign: "center", fontSize: 11, fontWeight: 700,
+          color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.7)",
+          pointerEvents: "none",
+        }}>
+          👆 ドラッグで移動｜🤏 ピンチで拡大縮小
+        </div>
+      )}
+    </div>
   ) : (
     <div
       onClick={() => document.getElementById("kourin-bg")?.click()}
@@ -143,8 +257,8 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
       <span style={labelStyle}>STEP 1｜背景写真</span>
       <button onClick={() => document.getElementById("kourin-bg")?.click()}
         style={{ width: "100%", padding: "10px", borderRadius: 6, fontSize: 13, fontWeight: 700,
-          cursor: "pointer", border: `2px dashed ${border}`, background: bgSrc ? "#f6fff6" : "transparent",
-          color: text }}>
+          cursor: "pointer", border: `2px dashed ${border}`,
+          background: bgSrc ? "#f6fff6" : "transparent", color: text }}>
         {bgSrc ? "✅ 背景を変更" : "🏔️ 背景写真を選ぶ"}
       </button>
     </div>
@@ -156,8 +270,8 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
       <span style={labelStyle}>STEP 2｜うちの子の写真</span>
       <button onClick={() => document.getElementById("kourin-pet")?.click()}
         style={{ width: "100%", padding: "10px", borderRadius: 6, fontSize: 13, fontWeight: 700,
-          cursor: "pointer", border: `2px dashed ${border}`, background: petSrc ? "#f6fff6" : "transparent",
-          color: text }}>
+          cursor: "pointer", border: `2px dashed ${border}`,
+          background: petSrc ? "#f6fff6" : "transparent", color: text }}>
         {petSrc ? "✅ 写真を変更" : "🐾 うちの子を選ぶ"}
       </button>
       {petSrc && !removedSrc && (
@@ -178,36 +292,26 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
       )}
       {removedSrc && (
         <div style={{ fontSize: 11, color: "#4caf50", fontWeight: 700, textAlign: "center", marginTop: 6 }}>
-          ✅ 背景除去完了！
+          ✅ 背景除去完了！画像を直接操作できます
         </div>
       )}
     </div>
   );
 
-  // ── STEP 3（スライダー） ──
-  const step3 = removedSrc ? (
-    <div style={{ background: panel, borderRadius: 8, padding: 14, border: `1px solid ${border}`, display: "flex", flexDirection: "column", gap: 12 }}>
-      <span style={labelStyle}>STEP 3｜位置・サイズ調整</span>
-      {[
-        { label: "大きさ", min: 0.1, max: 1.5, step: 0.05, value: scale, onChange: setScale },
-        { label: "左右", min: -50, max: 50, step: 1, value: offsetX, onChange: setOffsetX },
-        { label: "上下", min: -50, max: 50, step: 1, value: offsetY, onChange: setOffsetY },
-        { label: "透明度", min: 0.1, max: 1.0, step: 0.05, value: opacity, onChange: setOpacity },
-      ].map(({ label, min, max, step, value, onChange }) => (
-        <label key={label} style={{ fontSize: 13, fontWeight: 700, color: text, display: "flex", flexDirection: "column", gap: 4 }}>
-          <span style={{ display: "flex", justifyContent: "space-between" }}>
-            <span>{label}</span>
-            <span style={{ fontSize: 11, color: dark ? "#aaa" : "#888" }}>{value.toFixed(2)}</span>
-          </span>
-          <input type="range" min={min} max={max} step={step} value={value}
-            onChange={e => onChange(Number(e.target.value))}
-            style={{ width: "100%", accentColor: "#FFE600", height: 24 }} />
-        </label>
-      ))}
+  // ── 透明度スライダーのみ ──
+  const opacitySlider = removedSrc ? (
+    <div style={{ background: panel, borderRadius: 8, padding: 14, border: `1px solid ${border}` }}>
+      <span style={labelStyle}>透明度</span>
+      <input type="range" min={0.1} max={1.0} step={0.05} value={opacity}
+        onChange={e => setOpacity(Number(e.target.value))}
+        style={{ width: "100%", accentColor: "#FFE600", height: 24 }} />
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: dark ? "#aaa" : "#888", marginTop: 2 }}>
+        <span>薄く</span><span>濃く</span>
+      </div>
     </div>
   ) : null;
 
-  // ── ダウンロードボタン ──
+  // ── ダウンロード ──
   const downloadBtn = removedSrc && bgSrc ? (
     <button onClick={handleDownload}
       style={{
@@ -227,7 +331,7 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
         onChange={e => handlePetFile(e.target.files?.[0] ?? null)} />
 
       {isMobile ? (
-        /* ── モバイル：縦並び STEP1 → STEP2 → プレビュー → STEP3 → DL ── */
+        /* ── モバイル：STEP1 → STEP2 → プレビュー → 透明度 → DL ── */
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {step1}
           {step2}
@@ -239,17 +343,17 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
               {canvasEl}
             </div>
           )}
-          {step3}
+          {opacitySlider}
           {downloadBtn}
         </div>
       ) : (
-        /* ── PC：左にキャンバス、右にコントロール ── */
+        /* ── PC：左キャンバス・右コントロール ── */
         <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 20, alignItems: "start" }}>
           <div>{canvasEl}</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {step1}
             {step2}
-            {step3}
+            {opacitySlider}
             {downloadBtn}
           </div>
         </div>
