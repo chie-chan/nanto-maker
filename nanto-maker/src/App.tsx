@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { drawAll, SCHEMES, IMPACT_PRESETS, SPARKLE_COLORS } from "./canvas";
 import type { Scheme, DrawOptions } from "./canvas";
 import Kourin from "./Kourin";
+import ShareBar from "./ShareBar";
 
 
 function useWindowWidth() {
@@ -71,24 +72,9 @@ export default function App() {
     img.src = url;
   };
 
-  const handleDownload = () => {
-    if (!canvasRef.current) return;
-    canvasRef.current.toBlob(async (blob) => {
-      if (!blob) return;
-      const filename = `nanto-${Date.now()}.png`;
-      const file = new File([blob], filename, { type: "image/png" });
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        try { await navigator.share({ files: [file] }); } catch (_) { /* キャンセル */ }
-      } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.download = filename;
-        a.href = url;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-    }, "image/png");
-  };
+  const handleDownload = () => {};  // 後方互換用（未使用）
+  const getBlob = (): Promise<Blob | null> =>
+    new Promise(resolve => canvasRef.current?.toBlob(resolve, "image/png") ?? resolve(null));
 
   const bg   = dark ? "#0a0010" : "#f0ece4";
   const text = dark ? "#fff" : "#111";
@@ -164,8 +150,8 @@ export default function App() {
               <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
                 <Btn onClick={() => { setImgSrc(null); setImgObj(null); }}>別の写真</Btn>
                 <Btn onClick={render}>↺</Btn>
-                <Btn primary onClick={handleDownload}>⬇ {isMobile ? "保存" : "ダウンロード（1080px）"}</Btn>
               </div>
+              <ShareBar getBlob={getBlob} dark={dark} />
             </div>
           )}
           {!imgSrc && <canvas ref={canvasRef} style={{ display: "none" }} />}

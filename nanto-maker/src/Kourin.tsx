@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { removeBackground } from "@imgly/background-removal";
+import ShareBar from "./ShareBar";
 
 const SIZE = 1080;
 
@@ -186,25 +187,8 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
     setLoading(false);
   };
 
-  const handleDownload = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    canvas.toBlob(async (blob) => {
-      if (!blob) return;
-      const filename = `kourin-${Date.now()}.png`;
-      const file = new File([blob], filename, { type: "image/png" });
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        try { await navigator.share({ files: [file] }); } catch (_) { /* キャンセル */ }
-      } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.download = filename;
-        a.href = url;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-    }, "image/png");
-  };
+  const getBlob = (): Promise<Blob | null> =>
+    new Promise(resolve => canvasRef.current?.toBlob(resolve, "image/png") ?? resolve(null));
 
   const panel  = dark ? "#1a1a2e" : "#fff";
   const border = dark ? "#333" : "#ddd";
@@ -322,16 +306,9 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
     </div>
   ) : null;
 
-  // ── ダウンロード ──
-  const downloadBtn = removedSrc && bgSrc ? (
-    <button onClick={handleDownload}
-      style={{
-        padding: "16px", borderRadius: 8, fontSize: 15, fontWeight: 900,
-        cursor: "pointer", background: "#FFE600", color: "#111", border: "3px solid #111",
-      }}>
-      ⬇️ ダウンロード
-    </button>
-  ) : null;
+  const shareBar = removedSrc && bgSrc
+    ? <ShareBar getBlob={getBlob} dark={dark} />
+    : null;
 
   return (
     <div style={{ maxWidth: 1080, margin: "0 auto", padding: isMobile ? 12 : 20 }}>
@@ -355,7 +332,7 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
             </div>
           )}
           {opacitySlider}
-          {downloadBtn}
+          {shareBar}
         </div>
       ) : (
         /* ── PC：左キャンバス・右コントロール ── */
@@ -365,7 +342,7 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
             {step1}
             {step2}
             {opacitySlider}
-            {downloadBtn}
+            {shareBar}
           </div>
         </div>
       )}
