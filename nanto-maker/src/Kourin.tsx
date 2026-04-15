@@ -188,7 +188,10 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
   };
 
   const getBlob = (): Promise<Blob | null> =>
-    new Promise(resolve => canvasRef.current?.toBlob(resolve, "image/png") ?? resolve(null));
+    new Promise(resolve => {
+      if (!canvasRef.current) { resolve(null); return; }
+      canvasRef.current.toBlob(resolve, "image/png");
+    });
 
   const panel  = dark ? "#1a1a2e" : "#fff";
   const border = dark ? "#333" : "#ddd";

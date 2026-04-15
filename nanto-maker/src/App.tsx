@@ -74,7 +74,10 @@ export default function App() {
 
   const handleDownload = () => {};  // 後方互換用（未使用）
   const getBlob = (): Promise<Blob | null> =>
-    new Promise(resolve => canvasRef.current?.toBlob(resolve, "image/png") ?? resolve(null));
+    new Promise(resolve => {
+      if (!canvasRef.current) { resolve(null); return; }
+      canvasRef.current.toBlob(resolve, "image/png");
+    });
 
   const bg   = dark ? "#0a0010" : "#f0ece4";
   const text = dark ? "#fff" : "#111";
