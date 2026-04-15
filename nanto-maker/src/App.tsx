@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { drawAll, SCHEMES, IMPACT_PRESETS, SPARKLE_COLORS } from "./canvas";
+import { drawAll, SCHEMES } from "./canvas";
 import type { Scheme, DrawOptions } from "./canvas";
 import Kourin from "./Kourin";
 import ShareBar from "./ShareBar";
@@ -22,38 +22,29 @@ const TEXT_POSITIONS = [
 
 const SIZE = 1080;
 
+const SIMPLE_PRESETS = ["なんと！？", "え！？", "！？"];
+
 export default function App() {
-  const [imgSrc, setImgSrc]       = useState<string | null>(null);
-  const [imgObj, setImgObj]       = useState<HTMLImageElement | null>(null);
-  const [schemeIdx, setSchemeIdx] = useState(0);
+  const [imgSrc, setImgSrc]         = useState<string | null>(null);
+  const [imgObj, setImgObj]         = useState<HTMLImageElement | null>(null);
   const [impactText, setImpactText] = useState("なんと！？");
-  const [textPos, setTextPos]     = useState<DrawOptions["textPos"]>("top");
-  const [lineCount, setLineCount] = useState(90);
-  const [intensity, setIntensity] = useState(1.4);
-  const [burstEdge, setBurstEdge] = useState(true);
-  const [halftone, setHalftone]   = useState(false);
-  const [textSize, setTextSize]   = useState(12);
-  const [watercolor, setWatercolor]             = useState(false);
-  const [watercolorStrength, setWatercolorStrength] = useState(0.7);
-  const [sparkle, setSparkle]                   = useState(false);
-  const [sparkleCount, setSparkleCount]         = useState(15);
-  const [sparkleColorId, setSparkleColorId]     = useState("white");
+  const [textPos, setTextPos]       = useState<DrawOptions["textPos"]>("top");
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const scheme: Scheme = SCHEMES[schemeIdx];
-  const dark = scheme.bg === "#111111" || scheme.bg === "#0a0020";
+  const scheme: Scheme = SCHEMES[0];
+  const dark = false;
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 680;
 
   const render = useCallback(() => {
     if (!canvasRef.current) return;
     drawAll(canvasRef.current, imgObj, {
-      scheme, impactText, textPos, lineCount, intensity, burstEdge, halftone, textSize,
-      watercolor, watercolorStrength,
-      sparkle, sparkleCount, sparkleColorId,
+      scheme, impactText, textPos,
+      lineCount: 90, intensity: 1.4, burstEdge: true, halftone: false, textSize: 12,
+      watercolor: false, watercolorStrength: 0.7,
+      sparkle: false, sparkleCount: 15, sparkleColorId: "white",
     });
-  }, [imgObj, scheme, impactText, textPos, lineCount, intensity, burstEdge, halftone, textSize,
-      watercolor, watercolorStrength, sparkle, sparkleCount, sparkleColorId]);
+  }, [imgObj, scheme, impactText, textPos]);
 
   useEffect(() => { render(); }, [render]);
 
@@ -174,14 +165,13 @@ export default function App() {
                 fontFamily: "'Arial Black',sans-serif", letterSpacing: -0.5, marginBottom: 8,
               }}
             />
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-              {IMPACT_PRESETS.map(t => (
+            <div style={{ display: "flex", gap: 6 }}>
+              {SIMPLE_PRESETS.map(t => (
                 <button key={t} onClick={() => setImpactText(t)} style={{
-                  padding: "4px 8px", fontSize: 11, fontWeight: 700,
-                  border: `2px solid ${impactText === t ? "#111" : dark ? "#333" : "#ccc"}`,
+                  flex: 1, padding: "10px 4px", fontSize: 13, fontWeight: 900,
+                  border: `3px solid ${impactText === t ? "#111" : "#ccc"}`,
                   background: impactText === t ? "#FFE600" : "transparent",
-                  color: impactText === t ? "#111" : dark ? "#aaa" : "#555",
-                  cursor: "pointer",
+                  color: "#111", cursor: "pointer",
                 }}>{t}</button>
               ))}
             </div>
@@ -191,67 +181,13 @@ export default function App() {
             <div style={{ display: "flex", gap: 6 }}>
               {TEXT_POSITIONS.map(p => (
                 <button key={p.id} onClick={() => setTextPos(p.id)} style={{
-                  flex: 1, padding: "8px 0", fontWeight: 900, fontSize: 14,
-                  border: `3px solid ${textPos === p.id ? "#111" : dark ? "#333" : "#ccc"}`,
+                  flex: 1, padding: "10px 0", fontWeight: 900, fontSize: 16,
+                  border: `3px solid ${textPos === p.id ? "#111" : "#ccc"}`,
                   background: textPos === p.id ? "#FFE600" : "transparent",
-                  color: textPos === p.id ? "#111" : dark ? "#aaa" : "#666",
-                  cursor: "pointer",
+                  color: "#111", cursor: "pointer",
                 }}>{p.label}</button>
               ))}
             </div>
-            <SliderRow label="文字サイズ" value={textSize} min={7} max={18} step={1}
-              display={`${textSize}%`} onChange={setTextSize} dark={dark} />
-          </Panel>
-
-          <Panel dark={dark} label="カラー">
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-              {SCHEMES.map((s, i) => (
-                <button key={s.id} onClick={() => setSchemeIdx(i)} style={{
-                  padding: "10px 6px",
-                  border: `3px solid ${schemeIdx === i ? "#FFE600" : dark ? "#333" : "#ccc"}`,
-                  outline: schemeIdx === i ? "2px solid #111" : "none",
-                  background: s.bg, color: s.line, fontWeight: 900, fontSize: 12, cursor: "pointer",
-                }}>{s.label}</button>
-              ))}
-            </div>
-          </Panel>
-
-          <Panel dark={dark} label="エフェクト">
-            <SliderRow label="集中線の本数" value={lineCount} min={20} max={200} step={5} onChange={setLineCount} dark={dark} />
-            <SliderRow label="線の太さ" value={intensity} min={0.3} max={3} step={0.1} display={intensity.toFixed(1)} onChange={setIntensity} dark={dark} />
-            <ToggleRow label="爆発バースト背景" value={burstEdge} onChange={setBurstEdge} dark={dark} />
-            <ToggleRow label="ハーフトーンドット" value={halftone} onChange={setHalftone} dark={dark} />
-          </Panel>
-
-          <Panel dark={dark} label="🎨 水彩画エフェクト">
-            <ToggleRow label="水彩風にする" value={watercolor} onChange={setWatercolor} dark={dark} />
-            {watercolor && (
-              <SliderRow label="強さ" value={watercolorStrength} min={0.2} max={1.0} step={0.05}
-                display={Math.round(watercolorStrength * 100) + "%"} onChange={setWatercolorStrength} dark={dark} />
-            )}
-          </Panel>
-
-          <Panel dark={dark} label="✨ キラキラエフェクト">
-            <ToggleRow label="キラキラを散らす" value={sparkle} onChange={setSparkle} dark={dark} />
-            {sparkle && (
-              <>
-                <SliderRow label="数" value={sparkleCount} min={5} max={40} step={1}
-                  display={`${sparkleCount}個`} onChange={setSparkleCount} dark={dark} />
-                <div style={{ fontSize: 10, color: dark ? "#666" : "#999", marginBottom: 6, letterSpacing: 2 }}>色</div>
-                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                  {Object.entries(SPARKLE_COLORS).map(([id, sc]) => (
-                    <button key={id} onClick={() => setSparkleColorId(id)} style={{
-                      flex: 1, minWidth: 48, padding: "8px 2px", fontSize: 11, fontWeight: 900, cursor: "pointer",
-                      border: `3px solid ${sparkleColorId === id ? "#FFE600" : dark ? "#333" : "#ccc"}`,
-                      outline: sparkleColorId === id ? "2px solid #111" : "none",
-                      background: sc.color === "#ffffff" ? (dark ? "#333" : "#eee") : sc.color,
-                      color: id === "white" ? "#111" : "#fff",
-                      textShadow: "0 1px 2px rgba(0,0,0,0.4)",
-                    }}>{sc.label}</button>
-                  ))}
-                </div>
-              </>
-            )}
           </Panel>
 
         </div>
