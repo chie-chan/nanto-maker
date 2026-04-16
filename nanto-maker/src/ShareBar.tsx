@@ -7,14 +7,17 @@ const HASHTAG_TEXT = "#あいこあにまる #うちのこメーカー";
 const X_URL        = `https://twitter.com/intent/tweet?text=${encodeURIComponent(HASHTAG_TEXT + "\n")}`;
 const THREADS_URL  = `https://www.threads.net/intent/post?text=${encodeURIComponent(HASHTAG_TEXT + "\n")}`;
 
+// タッチデバイス（スマホ・タブレット）かどうか判定
+const isTouchDevice = () => navigator.maxTouchPoints > 0;
+
 export default function ShareBar({ getBlob, dark }: Props) {
   const save = async () => {
     const blob = await getBlob();
     if (!blob) return;
     const filename = `uchino-ko-${Date.now()}.png`;
-    const file = new File([blob], filename, { type: "image/png" });
-    if (navigator.share && navigator.canShare?.({ files: [file] })) {
-      try { await navigator.share({ files: [file] }); } catch (_) {}
+    // スマホのみ共有シート、PCは直接ダウンロード
+    if (isTouchDevice() && navigator.share && navigator.canShare?.({ files: [new File([blob], filename, { type: "image/png" })] })) {
+      try { await navigator.share({ files: [new File([blob], filename, { type: "image/png" })] }); } catch (_) {}
     } else {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
