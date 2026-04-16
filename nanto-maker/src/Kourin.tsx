@@ -296,7 +296,24 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
     </div>
   );
 
-  // ── 透明度スライダーのみ ──
+  const sliderRow = (label: string, value: number, min: number, max: number, step: number, onChange: (v: number) => void, left?: string, right?: string) => (
+    <label style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 12, fontWeight: 700, color: dark ? "#aaa" : "#555" }}>
+      <span style={{ display: "flex", justifyContent: "space-between" }}>
+        <span>{label}</span>
+        <span style={{ fontWeight: 400, color: dark ? "#777" : "#999" }}>{value.toFixed(2)}</span>
+      </span>
+      <input type="range" min={min} max={max} step={step} value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        style={{ width: "100%", accentColor: "#FFE600", height: 22 }} />
+      {(left || right) && (
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: dark ? "#666" : "#bbb", marginTop: -2 }}>
+          <span>{left}</span><span>{right}</span>
+        </div>
+      )}
+    </label>
+  );
+
+  // ── 透明度スライダー（モバイル用：透明度のみ） ──
   const opacitySlider = removedSrc ? (
     <div style={{ background: panel, borderRadius: 8, padding: 14, border: `1px solid ${border}` }}>
       <span style={labelStyle}>透明度</span>
@@ -306,6 +323,17 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: dark ? "#aaa" : "#888", marginTop: 2 }}>
         <span>薄く</span><span>濃く</span>
       </div>
+    </div>
+  ) : null;
+
+  // ── PC用：全スライダー ──
+  const pcSliders = removedSrc ? (
+    <div style={{ background: panel, borderRadius: 8, padding: 14, border: `1px solid ${border}`, display: "flex", flexDirection: "column", gap: 12 }}>
+      <span style={labelStyle}>調整</span>
+      {sliderRow("大きさ", scale, 0.1, 1.5, 0.05, setScale)}
+      {sliderRow("左右", offsetX, -50, 50, 1, setOffsetX, "←左", "右→")}
+      {sliderRow("上下", offsetY, -50, 50, 1, setOffsetY, "↑上", "下↓")}
+      {sliderRow("透明度", opacity, 0.1, 1.0, 0.05, setOpacity, "薄く", "濃く")}
     </div>
   ) : null;
 
@@ -344,7 +372,7 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {step1}
             {step2}
-            {opacitySlider}
+            {pcSliders}
             {shareBar}
           </div>
         </div>
