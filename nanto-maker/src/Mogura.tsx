@@ -92,19 +92,16 @@ export default function Mogura({ isMobile, dark, text, bg }: Props) {
     setScore(scoreRef.current);
   };
 
-  const handleFile = (file: File | null) => {
+  const handleFile = async (file: File | null) => {
     if (!file || !file.type.startsWith("image/")) return;
     setPetFile(file);
     setPetSrc(URL.createObjectURL(file));
     setRemovedSrc(null);
-  };
-
-  const handleRemoveBg = async () => {
-    if (!petFile) return;
+    // アップロードと同時に自動で背景除去開始
     setLoading(true);
     setProgress("背景除去の準備中です…（初回のみ時間がかかります）");
     try {
-      const blob = await removeBackground(petFile, {
+      const blob = await removeBackground(file, {
         progress: (key: string, current: number, total: number) => {
           if (key === "compute:inference")
             setProgress(`背景を除去中… ${Math.round((current / total) * 100)}%`);
@@ -114,7 +111,7 @@ export default function Mogura({ isMobile, dark, text, bg }: Props) {
       });
       setRemovedSrc(URL.createObjectURL(blob));
       setProgress("");
-    } catch { setProgress("エラーが発生しました。"); }
+    } catch { setProgress("エラーが発生しました。もう一度試してください。"); }
     setLoading(false);
   };
 
@@ -161,24 +158,22 @@ export default function Mogura({ isMobile, dark, text, bg }: Props) {
     <div style={{ maxWidth: 500, margin: "0 auto", padding: isMobile ? 12 : 20, display: "flex", flexDirection: "column", gap: 12 }}>
       <div style={{ background: panel, borderRadius: 8, padding: 14, border: `1px solid ${border}` }}>
         <span style={labelStyle}>うちの子の写真をアップロード</span>
-        <button onClick={() => document.getElementById("mogura-fi")?.click()}
+        <button onClick={() => document.getElementById("mogura-fi")?.click()} disabled={loading}
           style={{ width: "100%", padding: "10px", borderRadius: 6, fontSize: 13, fontWeight: 700,
-            cursor: "pointer", border: `2px dashed ${border}`,
-            background: petSrc ? "#f6fff6" : "transparent", color: text }}>
-          {petSrc ? "✅ 写真を変更" : "📷 写真を選ぶ"}
+            cursor: loading ? "not-allowed" : "pointer", border: `2px dashed ${border}`,
+            background: removedSrc ? "#f6fff6" : "transparent", color: text }}>
+          {loading ? "⏳ 処理中..." : removedSrc ? "✅ 写真を変更" : "📷 写真を選ぶ"}
         </button>
-        {petSrc && !removedSrc && (
-          <button onClick={handleRemoveBg} disabled={loading} style={{
-            width: "100%", marginTop: 8, padding: "12px", borderRadius: 6,
-            fontSize: 14, fontWeight: 900, border: "none", color: "#fff",
-            cursor: loading ? "not-allowed" : "pointer",
-            background: loading ? "#ccc" : "#e07050",
-          }}>
-            {loading ? "⏳ 処理中..." : "✨ 背景を除去する（推奨）"}
-          </button>
+        {progress && (
+          <div style={{ fontSize: 11, color: "#e07050", fontWeight: 700, textAlign: "center", marginTop: 6 }}>
+            {progress}
+          </div>
         )}
-        {progress && <div style={{ fontSize: 11, color: "#e07050", fontWeight: 700, textAlign: "center", marginTop: 6 }}>{progress}</div>}
-        {removedSrc && <div style={{ fontSize: 11, color: "#4caf50", fontWeight: 700, textAlign: "center", marginTop: 6 }}>✅ 背景除去完了！</div>}
+        {removedSrc && !loading && (
+          <div style={{ fontSize: 11, color: "#4caf50", fontWeight: 700, textAlign: "center", marginTop: 6 }}>
+            ✅ 準備完了！
+          </div>
+        )}
       </div>
 
       {petSrc && (
