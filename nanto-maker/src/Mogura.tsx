@@ -23,6 +23,7 @@ export default function Mogura({ isMobile, dark, text, bg }: Props) {
   const [progress, setProgress]     = useState("");
 
   const scoreRef    = useRef(0);
+  const timeLeftRef = useRef(GAME_DURATION);
   const timerRef    = useRef<ReturnType<typeof setInterval> | null>(null);
   const moleRef     = useRef<ReturnType<typeof setInterval> | null>(null);
   const scoreCanvas = useRef<HTMLCanvasElement>(null);
@@ -37,6 +38,7 @@ export default function Mogura({ isMobile, dark, text, bg }: Props) {
 
   const startGame = useCallback(() => {
     scoreRef.current = 0;
+    timeLeftRef.current = GAME_DURATION;
     setScore(0);
     setTimeLeft(GAME_DURATION);
     setHoles(Array(HOLE_COUNT).fill(false));
@@ -46,19 +48,20 @@ export default function Mogura({ isMobile, dark, text, bg }: Props) {
     // カウントダウン
     timerRef.current = setInterval(() => {
       setTimeLeft(t => {
-        if (t <= 1) {
+        const next = t <= 1 ? 0 : t - 1;
+        timeLeftRef.current = next;
+        if (next === 0) {
           clearTimers();
           setHoles(Array(HOLE_COUNT).fill(false));
           setPhase("gameover");
-          return 0;
         }
-        return t - 1;
+        return next;
       });
     }, 1000);
 
-    // もぐら出現
+    // もぐら出現（残り15秒から2匹同時）
     let interval = 800;
-    const spawnMole = () => {
+    const spawnOne = () => {
       const idx = Math.floor(Math.random() * HOLE_COUNT);
       setHoles(prev => {
         const next = [...prev];
@@ -66,17 +69,20 @@ export default function Mogura({ isMobile, dark, text, bg }: Props) {
         return next;
       });
       setTimeout(() => {
-        setHoles(prev => {
-          const next = [...prev];
-          next[idx] = false;
-          return next;
-        });
+        setHoles(prev => { const n = [...prev]; n[idx] = false; return n; });
       }, MOLE_STAY_MS);
     };
 
+    const spawnMoles = () => {
+      spawnOne();
+      // 残り15秒以下なら2匹目も出す（別の穴）
+      if (timeLeftRef.current <= 15) {
+        setTimeout(() => spawnOne(), 150);
+      }
+    };
+
     moleRef.current = setInterval(() => {
-      spawnMole();
-      // 徐々に速くなる
+      spawnMoles();
       if (interval > 400) interval -= 20;
     }, interval);
   }, []);
@@ -292,7 +298,9 @@ export default function Mogura({ isMobile, dark, text, bg }: Props) {
         ))}
       </div>
 
-      <div style={{ fontSize: 12, color: dark ? "#888" : "#999" }}>出てきたうちの子をタップ！</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: timeLeft <= 15 ? "#e07050" : dark ? "#888" : "#999" }}>
+        {timeLeft <= 15 ? "⚡ 2匹同時出現！急いで！" : "出てきたうちの子をタップ！"}
+      </div>
     </div>
   );
 }
