@@ -73,7 +73,7 @@ export default function App() {
 
   const bg   = dark ? "#0a0010" : "#f0ece4";
   const text = dark ? "#fff" : "#111";
-  const [tab, setTab] = useState<"nanto" | "kourin" | "mogura">("kourin");
+  const [tab, setTab] = useState<"nanto" | "kourin" | "mogura">("mogura");
 
   return (
     <div style={{ minHeight: "100vh", background: bg, fontFamily: "'Arial Black','Helvetica Neue',sans-serif", color: text }}>
@@ -96,7 +96,7 @@ export default function App() {
 
       {/* ── Tabs ── */}
       <div style={{ display: "flex", borderBottom: "3px solid #111", background: "#FFE600" }}>
-        {([["kourin", "🐾 降臨"], ["mogura", "🎮 もぐら"], ["nanto", "⚡ なんと"]] as const).map(([id, label]) => (
+        {([["mogura", "🎮 もぐら"], ["kourin", "🐾 降臨"], ["nanto", "⚡ なんと"]] as const).map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)} style={{
             padding: isMobile ? "8px 12px" : "10px 22px",
             fontSize: isMobile ? 12 : 14, fontWeight: 900,
