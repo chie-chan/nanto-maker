@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { drawAll, SCHEMES } from "./canvas";
 import type { Scheme, DrawOptions } from "./canvas";
 import Kourin from "./Kourin";
+import Filter from "./Filter";
 import ShareBar from "./ShareBar";
 
 
@@ -72,7 +73,7 @@ export default function App() {
 
   const bg   = dark ? "#0a0010" : "#f0ece4";
   const text = dark ? "#fff" : "#111";
-  const [tab, setTab] = useState<"nanto" | "kourin">("kourin");
+  const [tab, setTab] = useState<"nanto" | "kourin" | "filter">("kourin");
 
   return (
     <div style={{ minHeight: "100vh", background: bg, fontFamily: "'Arial Black','Helvetica Neue',sans-serif", color: text }}>
@@ -95,7 +96,7 @@ export default function App() {
 
       {/* ── Tabs ── */}
       <div style={{ display: "flex", borderBottom: "3px solid #111", background: "#FFE600" }}>
-        {([["kourin", "🐾 うちの子降臨メーカー"], ["nanto", "⚡ なんとメーカー"]] as const).map(([id, label]) => (
+        {([["kourin", "🐾 降臨メーカー"], ["filter", "🖤 フィルターメーカー"], ["nanto", "⚡ なんとメーカー"]] as const).map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)} style={{
             padding: isMobile ? "8px 12px" : "10px 22px",
             fontSize: isMobile ? 12 : 14, fontWeight: 900,
@@ -108,6 +109,8 @@ export default function App() {
 
       {tab === "kourin" ? (
         <Kourin isMobile={isMobile} dark={dark} text={text} bg={bg} />
+      ) : tab === "filter" ? (
+        <Filter isMobile={isMobile} dark={dark} text={text} bg={bg} />
       ) : (
       <>
       <div style={{
