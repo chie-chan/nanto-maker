@@ -228,7 +228,7 @@ export default function Mogura({ isMobile, dark, text, bg }: Props) {
       <img src={removedSrc || petSrc!} style={{ width: 130, height: 130, objectFit: "cover", borderRadius: "50%", border: "4px solid #FFE600" }} />
       <div style={{ fontSize: 52, fontWeight: 900, color: "#e07050" }}>{score}<span style={{ fontSize: 24 }}>点</span></div>
       <div style={{ fontSize: 13, color: dark ? "#aaa" : "#666" }}>
-        {score >= 20 ? "すごい！さすが！🏆" : score >= 10 ? "なかなかやるね😄" : "もう一回チャレンジ！💪"}
+        {score >= 40 ? "パーフェクト！天才すぎる！🎖️" : score >= 30 ? "すごい！さすが！🏆" : score >= 20 ? "なかなかやるね😄" : score >= 10 ? "もう少し！惜しい！💪" : "もう一回チャレンジ！🔥"}
       </div>
       <canvas ref={scoreCanvas} style={{ display: "none" }} />
       <ShareBar getBlob={getBlob} dark={dark} />
