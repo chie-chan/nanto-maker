@@ -128,7 +128,7 @@ export default function Mogura({ isMobile, dark, text, bg }: Props) {
     const ctx = canvas.getContext("2d");
     if (!ctx) { resolve(null); return; }
     canvas.width = 600; canvas.height = 600;
-    ctx.fillStyle = "#7dba5f";
+    ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, 600, 600);
     const img = new Image();
     img.onload = () => {
@@ -140,10 +140,10 @@ export default function Mogura({ isMobile, dark, text, bg }: Props) {
       ctx.drawImage(img, 120, 60, 360, 360);
       ctx.restore();
       // テキスト
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = "#111";
       ctx.font = "bold 52px 'Arial Black', sans-serif";
       ctx.textAlign = "center";
-      ctx.strokeStyle = "#333";
+      ctx.strokeStyle = "#fff";
       ctx.lineWidth = 6;
       ctx.strokeText(`${scoreRef.current}点！`, 300, 480);
       ctx.fillText(`${scoreRef.current}点！`, 300, 480);
