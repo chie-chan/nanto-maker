@@ -121,9 +121,9 @@ function QuizCreator({ isMobile, dark, text, bg }: Props) {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [questions, setQuestions] = useState([
-    { q: "", a: "", d1: "", d2: "" },
-    { q: "", a: "", d1: "", d2: "" },
-    { q: "", a: "", d1: "", d2: "" },
+    { q: "私が落ち込んだときの回復法は？", a: "うちの子の動画を永遠に見る", d1: "爆食いする", d2: "友達に愚痴る" },
+    { q: "私が彼氏とうちの子、どちらかしか選べないとしたら？", a: "うちの子（即答）", d1: "彼氏（もちろん）", d2: "状況による" },
+    { q: "私が宝くじ1億当たったら最初にすること？", a: "うちの子専用のシェフを雇う", d1: "ペット可物件を即買いして引越す", d2: "親に電話" },
   ]);
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [copied, setCopied] = useState(false);
