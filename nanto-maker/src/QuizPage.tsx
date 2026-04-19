@@ -116,6 +116,14 @@ export default function QuizPage({ isMobile, dark, text, bg }: Props) {
   return <QuizCreator isMobile={isMobile} dark={dark} text={text} bg={bg} />;
 }
 
+// ── プレースホルダー例題 ────────────────────────────────────
+const PLACEHOLDERS = [
+  { q: "例：私が落ち込んだときの回復法は？",              a: "例：うちの子の動画を永遠に見る",    d1: "例：爆食いする",                    d2: "例：友達に愚痴る" },
+  { q: "例：私が彼氏とうちの子、どちらかしか選べないとしたら？", a: "例：うちの子（即答）",              d1: "例：彼氏（もちろん）",              d2: "例：状況による" },
+  { q: "例：私が宝くじ1億当たったら最初にすること？",      a: "例：うちの子専用のシェフを雇う",    d1: "例：ペット可物件を即買いして引越す", d2: "例：親に電話" },
+];
+const DEFAULT_PH = { q: "質問を入力してください", a: "正解の答え", d1: "ダミーの答え1", d2: "ダミーの答え2" };
+
 // ── 出題者画面 ──────────────────────────────────────────────
 function QuizCreator({ isMobile, dark, text, bg }: Props) {
   const navigate = useNavigate();
@@ -202,7 +210,8 @@ function QuizCreator({ isMobile, dark, text, bg }: Props) {
             <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 2, color: "#999", marginBottom: 10 }}>
               Q{i + 1}
             </div>
-            <input placeholder="例：私が落ち込んだときの回復法は？" value={item.q}
+            {(() => { const ph = PLACEHOLDERS[i] ?? DEFAULT_PH; return (<>
+            <input placeholder={ph.q} value={item.q}
               onChange={e => updateQ(i, "q", e.target.value)}
               style={{ ...inp(), marginBottom: 10 }} />
 
@@ -212,7 +221,7 @@ function QuizCreator({ isMobile, dark, text, bg }: Props) {
                 fontSize: 10, fontWeight: 900, padding: "4px 8px",
                 display: "flex", alignItems: "center", flexShrink: 0,
               }}>✅ 正解</div>
-              <input placeholder="例：うちの子の動画を永遠に見る" value={item.a}
+              <input placeholder={ph.a} value={item.a}
                 onChange={e => updateQ(i, "a", e.target.value)}
                 style={{ ...inp({ flex: 1 }) }} />
             </div>
@@ -223,7 +232,7 @@ function QuizCreator({ isMobile, dark, text, bg }: Props) {
                 fontSize: 10, fontWeight: 900, padding: "4px 8px",
                 display: "flex", alignItems: "center", flexShrink: 0,
               }}>❌ ダミー</div>
-              <input placeholder="例：爆食いする" value={item.d1}
+              <input placeholder={ph.d1} value={item.d1}
                 onChange={e => updateQ(i, "d1", e.target.value)}
                 style={{ ...inp({ flex: 1 }) }} />
             </div>
@@ -234,10 +243,11 @@ function QuizCreator({ isMobile, dark, text, bg }: Props) {
                 fontSize: 10, fontWeight: 900, padding: "4px 8px",
                 display: "flex", alignItems: "center", flexShrink: 0,
               }}>❌ ダミー</div>
-              <input placeholder="例：友達に愚痴る" value={item.d2}
+              <input placeholder={ph.d2} value={item.d2}
                 onChange={e => updateQ(i, "d2", e.target.value)}
                 style={{ ...inp({ flex: 1 }) }} />
             </div>
+            </>); })()}
 
             {questions.length > 1 && (
               <button onClick={() => removeQuestion(i)} style={{
