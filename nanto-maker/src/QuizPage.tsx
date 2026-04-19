@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import LZString from "lz-string";
 import ShareBar from "./ShareBar";
 
 // ── 結果メッセージ ──────────────────────────────────────────
@@ -26,10 +27,13 @@ interface QuizData {
   questions: Array<{ q: string; a: string; d1: string; d2: string }>;
 }
 function encodeQuiz(data: QuizData): string {
-  return btoa(encodeURIComponent(JSON.stringify(data)));
+  return LZString.compressToEncodedURIComponent(JSON.stringify(data));
 }
 function decodeQuiz(s: string): QuizData | null {
-  try { return JSON.parse(decodeURIComponent(atob(s))); } catch { return null; }
+  try {
+    const json = LZString.decompressFromEncodedURIComponent(s);
+    return json ? JSON.parse(json) : null;
+  } catch { return null; }
 }
 
 // ── 結果画像（集中線） ──────────────────────────────────────
