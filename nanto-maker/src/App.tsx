@@ -29,7 +29,7 @@ export default function App() {
       <div style={{ background: "#FFE600", padding: isMobile ? "10px 14px" : "14px 24px", display: "flex", alignItems: "center", gap: 10, borderBottom: "4px solid #111" }}>
         <img src="/aiko-logo.png" alt="Aiko,animal" style={{ height: isMobile ? 28 : 36, objectFit: "contain" }} />
         <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 900, color: "#111", letterSpacing: -1, lineHeight: 1, whiteSpace: "nowrap" }}>うちのこメーカー</div>
-        <div style={{ fontSize: 10, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: 1 }}>SNS画像メーカー</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "#555", letterSpacing: 1 }}>うちのこあそびば</div>
         <a
           href="https://aikoanimal.base.shop/"
           target="_blank"
