@@ -166,7 +166,7 @@ function QuizCreator({ isMobile, dark, text, bg }: Props) {
     <div>
       <div style={{ display: "flex", borderBottom: "3px solid #111", background: "#FFE600", alignItems: "center" }}>
         <div style={{ padding: isMobile ? "8px 12px" : "10px 22px", fontSize: isMobile ? 12 : 14, fontWeight: 900, color: "#111" }}>
-          🌹 あなた、わかってる？
+          🌹 私のことわかってる？
         </div>
         <button onClick={() => navigate("/")} style={{
           marginLeft: "auto", padding: isMobile ? "8px 12px" : "10px 18px",
@@ -179,10 +179,10 @@ function QuizCreator({ isMobile, dark, text, bg }: Props) {
 
         <div style={{ marginBottom: 28 }}>
           <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 900, marginBottom: 6 }}>
-            あなた、わかってる？メーカー
+            あなた、私のことわかってる？メーカー
           </div>
           <div style={{ fontSize: 12, color: "#888", lineHeight: 1.6 }}>
-            3択クイズを作ってURLをシェア。友達がどれだけ知ってるか試そう🌹
+            3択クイズを作ってURLをシェア。相手がどれだけ知ってるか試そう🌹
           </div>
         </div>
 
@@ -280,8 +280,10 @@ function QuizCreator({ isMobile, dark, text, bg }: Props) {
               fontSize: 15, fontWeight: 900, cursor: "pointer",
               transition: "background 0.2s", fontFamily: "sans-serif",
             }}>{copied ? "✓ コピーしました！" : "URLをコピー"}</button>
-            <div style={{ fontSize: 11, color: "#888", marginTop: 10, textAlign: "center" }}>
-              このURLをSNSやDMでシェアしよう🐾
+            <div style={{ fontSize: 12, color: "#555", marginTop: 12, lineHeight: 1.8, padding: "10px 12px", background: "#FFF9CC", border: "2px solid #FFE600" }}>
+              📣 <strong>クイズの送り方</strong><br />
+              このURLをコピーして、クイズを解いてほしい相手にDMやSNSで送ろう！<br />
+              相手がURLを開くとクイズがスタートするよ🌹
             </div>
           </div>
         )}

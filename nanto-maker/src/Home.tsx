@@ -89,8 +89,8 @@ export default function Home({ isMobile, dark }: Props) {
             クイズ
           </div>
           <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)", lineHeight: 1.6 }}>
-            あなた、わかってる？<br />
-            クイズを作ってシェア！
+            私のことわかってる？<br />
+            クイズを作って相手に送ろう！
           </div>
           <div style={{ marginTop: 8, fontSize: 13, fontWeight: 900, color: "#fff", letterSpacing: 1 }}>
             START →
