@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./Home";
 import GamePage from "./GamePage";
 import MakerPage from "./MakerPage";
+import QuizPage from "./QuizPage";
 
 function useWindowWidth() {
   const [width, setWidth] = useState(window.innerWidth);
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="/"       element={<Home      isMobile={isMobile} dark={dark} />} />
         <Route path="/game"   element={<GamePage  isMobile={isMobile} dark={dark} text={text} bg={bg} />} />
         <Route path="/maker"  element={<MakerPage isMobile={isMobile} dark={dark} text={text} bg={bg} />} />
+        <Route path="/quiz"   element={<QuizPage  isMobile={isMobile} dark={dark} text={text} bg={bg} />} />
       </Routes>
 
       {/* ── Footer ── */}

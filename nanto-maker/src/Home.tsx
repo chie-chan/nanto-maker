@@ -14,7 +14,7 @@ export default function Home({ isMobile, dark }: Props) {
         WHAT DO YOU WANT TO MAKE?
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 20, width: "100%", maxWidth: 680 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 20, width: "100%", maxWidth: 980 }}>
 
         {/* ゲーム */}
         <button
@@ -67,6 +67,33 @@ export default function Home({ isMobile, dark }: Props) {
           </div>
           <div style={{ marginTop: 8, fontSize: 13, fontWeight: 900, color: "#111", letterSpacing: 1 }}>
             CREATE →
+          </div>
+        </button>
+
+        {/* クイズ */}
+        <button
+          onClick={() => navigate("/quiz")}
+          style={{
+            border: "4px solid #111", background: "#e07050", color: "#fff",
+            padding: isMobile ? "36px 20px" : "48px 28px",
+            cursor: "pointer", textAlign: "left",
+            fontFamily: "'Arial Black','Helvetica Neue',sans-serif",
+            display: "flex", flexDirection: "column", gap: 10,
+            transition: "transform 0.1s",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.02)")}
+          onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+        >
+          <div style={{ fontSize: isMobile ? 44 : 56 }}>🌹</div>
+          <div style={{ fontSize: isMobile ? 24 : 30, fontWeight: 900, letterSpacing: -1, lineHeight: 1.1 }}>
+            クイズ
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)", lineHeight: 1.6 }}>
+            あなた、わかってる？<br />
+            クイズを作ってシェア！
+          </div>
+          <div style={{ marginTop: 8, fontSize: 13, fontWeight: 900, color: "#fff", letterSpacing: 1 }}>
+            START →
           </div>
         </button>
 
