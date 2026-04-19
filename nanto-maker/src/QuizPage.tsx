@@ -121,9 +121,9 @@ function QuizCreator({ isMobile, dark, text, bg }: Props) {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [questions, setQuestions] = useState([
-    { q: "私が落ち込んだときの回復法は？", a: "うちの子の動画を永遠に見る", d1: "爆食いする", d2: "友達に愚痴る" },
-    { q: "私が彼氏とうちの子、どちらかしか選べないとしたら？", a: "うちの子（即答）", d1: "彼氏（もちろん）", d2: "状況による" },
-    { q: "私が宝くじ1億当たったら最初にすること？", a: "うちの子専用のシェフを雇う", d1: "ペット可物件を即買いして引越す", d2: "親に電話" },
+    { q: "", a: "", d1: "", d2: "" },
+    { q: "", a: "", d1: "", d2: "" },
+    { q: "", a: "", d1: "", d2: "" },
   ]);
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [copied, setCopied] = useState(false);
@@ -202,7 +202,7 @@ function QuizCreator({ isMobile, dark, text, bg }: Props) {
             <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 2, color: "#999", marginBottom: 10 }}>
               Q{i + 1}
             </div>
-            <input placeholder="質問（例：好きな食べ物は？）" value={item.q}
+            <input placeholder="例：私が落ち込んだときの回復法は？" value={item.q}
               onChange={e => updateQ(i, "q", e.target.value)}
               style={{ ...inp(), marginBottom: 10 }} />
 
@@ -212,7 +212,7 @@ function QuizCreator({ isMobile, dark, text, bg }: Props) {
                 fontSize: 10, fontWeight: 900, padding: "4px 8px",
                 display: "flex", alignItems: "center", flexShrink: 0,
               }}>✅ 正解</div>
-              <input placeholder="正解の答え（例：バナナ）" value={item.a}
+              <input placeholder="例：うちの子の動画を永遠に見る" value={item.a}
                 onChange={e => updateQ(i, "a", e.target.value)}
                 style={{ ...inp({ flex: 1 }) }} />
             </div>
@@ -223,7 +223,7 @@ function QuizCreator({ isMobile, dark, text, bg }: Props) {
                 fontSize: 10, fontWeight: 900, padding: "4px 8px",
                 display: "flex", alignItems: "center", flexShrink: 0,
               }}>❌ ダミー</div>
-              <input placeholder="ダミーの答え1（例：りんご）" value={item.d1}
+              <input placeholder="例：爆食いする" value={item.d1}
                 onChange={e => updateQ(i, "d1", e.target.value)}
                 style={{ ...inp({ flex: 1 }) }} />
             </div>
@@ -234,7 +234,7 @@ function QuizCreator({ isMobile, dark, text, bg }: Props) {
                 fontSize: 10, fontWeight: 900, padding: "4px 8px",
                 display: "flex", alignItems: "center", flexShrink: 0,
               }}>❌ ダミー</div>
-              <input placeholder="ダミーの答え2（例：みかん）" value={item.d2}
+              <input placeholder="例：友達に愚痴る" value={item.d2}
                 onChange={e => updateQ(i, "d2", e.target.value)}
                 style={{ ...inp({ flex: 1 }) }} />
             </div>
