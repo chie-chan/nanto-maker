@@ -15,7 +15,7 @@ const PINK = "#ff7aa8";
 const PINK_DARK = "#c94279";
 const LAVENDER = "#c8b4e8";
 const CANVAS_SIZE = 1080;
-const MOBILE_CANVAS_HEIGHT = 1560;
+const MOBILE_CANVAS_HEIGHT = 1360;
 const DESKTOP_CANVAS_WIDTH = 1560;
 
 interface Rect {
@@ -505,6 +505,18 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
     generatePieces();
   }, [phase, imageEl, difficulty, generatePieces, isMobile]);
 
+  useEffect(() => {
+    if (!isMobile || phase !== "play") return;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, [isMobile, phase]);
+
   useEffect(() => () => { if (timerIdRef.current) clearInterval(timerIdRef.current); }, []);
 
   /* ---------- UI ---------- */
@@ -558,29 +570,31 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
   );
 
   return (
-    <div style={{ maxWidth: isMobile ? 560 : 1040, margin: "0 auto", padding: isMobile ? 8 : 16, display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ maxWidth: isMobile ? 560 : 1040, margin: "0 auto", padding: isMobile ? 6 : 16, display: "flex", flexDirection: "column", gap: isMobile ? 6 : 10 }}>
 
       {/* toolbar */}
       <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px",
+        display: "flex", alignItems: "center", justifyContent: "space-between", padding: isMobile ? "6px 10px" : "8px 12px",
         background: PINK, color: "#fff", borderRadius: 12, boxShadow: "0 6px 14px rgba(255,122,168,0.32)",
-        fontWeight: 800, fontSize: 14, gap: 8, flexWrap: "wrap",
+        fontWeight: 800, fontSize: isMobile ? 12 : 14, gap: 8, flexWrap: "wrap",
       }}>
         <span>🧩 {pieceCount} ピース</span>
         <span>⏱ {timeLabel}</span>
         <span>🎯 {moves} 手</span>
       </div>
 
-      <div style={{
-        fontSize: 11, color: "#7a4a5e", textAlign: "center", padding: "6px 10px",
-        background: "linear-gradient(135deg, #fff3f7, #fff7e6)", borderRadius: 999,
-      }}>
-        ✋ ドラッグで動かす・タップで回転・近づくとピタッ
-      </div>
+      {!isMobile && (
+        <div style={{
+          fontSize: 11, color: "#7a4a5e", textAlign: "center", padding: "6px 10px",
+          background: "linear-gradient(135deg, #fff3f7, #fff7e6)", borderRadius: 999,
+        }}>
+          ✋ ドラッグで動かす・タップで回転・近づくとピタッ
+        </div>
+      )}
 
       {/* canvas */}
       <div ref={wrapRef} style={{
-        position: "relative", width: "100%", aspectRatio: `${playCanvasWidth} / ${playCanvasHeight}`, borderRadius: 18,
+        position: "relative", width: "100%", aspectRatio: `${playCanvasWidth} / ${playCanvasHeight}`, borderRadius: isMobile ? 14 : 18,
         overflow: "hidden", background: "#fff", boxShadow: "0 14px 32px rgba(80,40,70,0.18)",
         border: `1.5px dashed ${PINK}55`,
       }}>
@@ -633,15 +647,15 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
       {phase === "play" && (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
           <button onClick={shuffle}
-            style={{ padding: 10, borderRadius: 10, fontWeight: 800, color: "#fff", background: PINK, border: "none", cursor: "pointer" }}>
+            style={{ padding: isMobile ? 8 : 10, borderRadius: 10, fontWeight: 800, fontSize: isMobile ? 15 : undefined, lineHeight: 1.1, color: "#fff", background: PINK, border: "none", cursor: "pointer" }}>
             {isMobile ? "混ぜる" : "🔄 シャッフル"}
           </button>
           <button onClick={solveOne}
-            style={{ padding: 10, borderRadius: 10, fontWeight: 800, color: "#0f3b35", background: "linear-gradient(135deg, #5fe4d2, #2dc5b3)", border: "none", cursor: "pointer" }}>
+            style={{ padding: isMobile ? 8 : 10, borderRadius: 10, fontWeight: 800, fontSize: isMobile ? 15 : undefined, lineHeight: 1.1, color: "#0f3b35", background: "linear-gradient(135deg, #5fe4d2, #2dc5b3)", border: "none", cursor: "pointer" }}>
             ✓ 1つ進める
           </button>
           <button onClick={() => { setImageEl(null); setPhase("upload"); }}
-            style={{ padding: 10, borderRadius: 10, fontWeight: 800, color: PINK_DARK, background: "#fff", border: `1.5px solid ${PINK}55`, cursor: "pointer" }}>
+            style={{ padding: isMobile ? 8 : 10, borderRadius: 10, fontWeight: 800, fontSize: isMobile ? 15 : undefined, lineHeight: 1.1, color: PINK_DARK, background: "#fff", border: `1.5px solid ${PINK}55`, cursor: "pointer" }}>
             📷 写真
           </button>
         </div>

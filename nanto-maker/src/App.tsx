@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, NavLink, Route, Routes } from "react-router-dom";
+import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import GamePage from "./GamePage";
 import Home from "./Home";
 import Kourin from "./Kourin";
@@ -31,7 +31,9 @@ const navItems = [
 
 export default function App() {
   const dark = false;
+  const location = useLocation();
   const isMobile = useWindowWidth() < 680;
+  const hideFooter = isMobile && location.pathname === "/puzzle";
   const bg = "#fffaf7";
   const text = "#2d2340";
 
@@ -72,13 +74,15 @@ export default function App() {
         <Route path="/quiz" element={<QuizPage isMobile={isMobile} dark={dark} text={text} bg={bg} />} />
       </Routes>
 
-      <footer className="app-footer">
-        <a href="https://x.com/aiaiaigirl" target="_blank" rel="noopener noreferrer">
-          Created by aiko animal @aiaiaigirl
-        </a>
-        <p>あいこあにまるの小さなミニゲームです。すきま時間に、ふわっと遊んでください。</p>
-        <small>© {new Date().getFullYear()} aiko animal AI STUDIO</small>
-      </footer>
+      {!hideFooter && (
+        <footer className="app-footer">
+          <a href="https://x.com/aiaiaigirl" target="_blank" rel="noopener noreferrer">
+            Created by aiko animal @aiaiaigirl
+          </a>
+          <p>あいこあにまるの小さなミニゲームです。すきま時間に、ふわっと遊んでください。</p>
+          <small>© {new Date().getFullYear()} aiko animal AI STUDIO</small>
+        </footer>
+      )}
     </div>
   );
 }
