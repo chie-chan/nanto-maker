@@ -39,6 +39,7 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
   const [imageName, setImageName]   = useState("");
   const [difficulty, setDifficulty] = useState<Difficulty>("normal");
   const [moves, setMoves]           = useState(0);
+  const [pieceCount, setPieceCount] = useState(0);
   const [timeLabel, setTimeLabel]   = useState("00:00");
 
   // Game state refs (avoid re-renders on every frame)
@@ -192,6 +193,7 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
       }
     }
     piecesRef.current = pieces;
+    setPieceCount(pieces.length);
     movesRef.current = 0; setMoves(0);
     startedAtRef.current = null; elapsedRef.current = 0; setTimeLabel("00:00");
     if (timerIdRef.current) clearInterval(timerIdRef.current);
@@ -323,8 +325,11 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
     if (!imageEl) return;
     completedRef.current = false;
     completeImgRef.current?.classList.remove("show");
-    setPhase("play");
-    generatePieces();
+    if (phase === "play") {
+      generatePieces();
+    } else {
+      setPhase("play"); // effect will regenerate
+    }
   };
 
   const solveOne = () => {
@@ -363,19 +368,20 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
   };
 
   /* ---------- effects ---------- */
+  // 画像が読み込まれたら play 画面に遷移（canvas はそこで初めてマウントされる）
   useEffect(() => {
-    // canvas sizing on mount
-    const canvas = canvasRef.current; if (!canvas) return;
-    canvas.width = 1080; canvas.height = 1080;
-    drawAll();
-  }, [drawAll]);
+    if (imageEl && phase === "upload") setPhase("play");
+  }, [imageEl, phase]);
 
+  // canvas がマウントされたあとに初期化＋ピース生成
   useEffect(() => {
-    if (imageEl && phase !== "complete") {
-      setPhase("play");
-      generatePieces();
-    }
-  }, [imageEl, difficulty]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (phase !== "play" || !imageEl) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.width = 1080;
+    canvas.height = 1080;
+    generatePieces();
+  }, [phase, imageEl, difficulty, generatePieces]);
 
   useEffect(() => () => { if (timerIdRef.current) clearInterval(timerIdRef.current); }, []);
 
@@ -428,7 +434,7 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
         background: PINK, color: "#fff", borderRadius: 12, boxShadow: "0 6px 14px rgba(255,122,168,0.32)",
         fontWeight: 800, fontSize: 14, gap: 8, flexWrap: "wrap",
       }}>
-        <span>🧩 {piecesRef.current.length} ピース</span>
+        <span>🧩 {pieceCount} ピース</span>
         <span>⏱ {timeLabel}</span>
         <span>🎯 {moves} 手</span>
       </div>
