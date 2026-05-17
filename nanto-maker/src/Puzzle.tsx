@@ -16,6 +16,7 @@ const PINK_DARK = "#c94279";
 const LAVENDER = "#c8b4e8";
 const CANVAS_SIZE = 1080;
 const MOBILE_CANVAS_HEIGHT = 1560;
+const DESKTOP_CANVAS_WIDTH = 1560;
 
 interface Rect {
   x: number;
@@ -38,9 +39,22 @@ function mulberry32(seed: number) { return function() { let t = seed += 0x6D2B79
 function formatTime(ms: number) { const t = Math.max(0, Math.floor(ms / 1000)); return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`; }
 
 function getPuzzleLayout(cw: number, ch: number, mobile: boolean): { board: Rect; tray?: Rect } {
-  if (!mobile) return { board: { x: 0, y: 0, w: cw, h: ch } };
-
   const pad = Math.round(cw * 0.056);
+
+  if (!mobile) {
+    const sidePad = Math.round(ch * 0.04);
+    const boardSize = ch - sidePad * 2;
+    const board = { x: sidePad, y: sidePad, w: boardSize, h: boardSize };
+    const trayX = board.x + board.w + sidePad;
+    const tray = {
+      x: trayX,
+      y: sidePad,
+      w: Math.max(300, cw - trayX - sidePad),
+      h: boardSize,
+    };
+    return { board, tray };
+  }
+
   const boardSize = cw - pad * 2;
   const board = { x: pad, y: pad, w: boardSize, h: boardSize };
   const trayTop = board.y + board.h + Math.round(cw * 0.05);
@@ -116,7 +130,7 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
       ctx.beginPath(); ctx.arc(rx * cw, ry * ch, cw * 0.018, 0, Math.PI * 2); ctx.fill(); ctx.restore();
     });
 
-    if (isMobile && layout.tray) {
+    if (layout.tray) {
       ctx.save();
       drawRoundedRect(ctx, layout.board, 28);
       ctx.fillStyle = "rgba(255,255,255,0.72)";
@@ -486,7 +500,7 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
     if (phase !== "play" || !imageEl) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.width = CANVAS_SIZE;
+    canvas.width = isMobile ? CANVAS_SIZE : DESKTOP_CANVAS_WIDTH;
     canvas.height = isMobile ? MOBILE_CANVAS_HEIGHT : CANVAS_SIZE;
     generatePieces();
   }, [phase, imageEl, difficulty, generatePieces, isMobile]);
@@ -496,6 +510,16 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
   /* ---------- UI ---------- */
   const panel = dark ? "#1a1a2e" : "#fff";
   const border = dark ? "#333" : "#f5d5e3";
+  const playCanvasWidth = isMobile ? CANVAS_SIZE : DESKTOP_CANVAS_WIDTH;
+  const playCanvasHeight = isMobile ? MOBILE_CANVAS_HEIGHT : CANVAS_SIZE;
+  const playBoard = getPuzzleLayout(playCanvasWidth, playCanvasHeight, isMobile).board;
+  const completeImageStyle = {
+    left: `${(playBoard.x / playCanvasWidth) * 100}%`,
+    top: `${(playBoard.y / playCanvasHeight) * 100}%`,
+    width: `${(playBoard.w / playCanvasWidth) * 100}%`,
+    height: `${(playBoard.h / playCanvasHeight) * 100}%`,
+    borderRadius: 14,
+  };
 
   if (phase === "upload") return (
     <div style={{ maxWidth: 500, margin: "0 auto", padding: isMobile ? 12 : 20, display: "flex", flexDirection: "column", gap: 14 }}>
@@ -534,7 +558,7 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
   );
 
   return (
-    <div style={{ maxWidth: 560, margin: "0 auto", padding: isMobile ? 8 : 16, display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ maxWidth: isMobile ? 560 : 1040, margin: "0 auto", padding: isMobile ? 8 : 16, display: "flex", flexDirection: "column", gap: 10 }}>
 
       {/* toolbar */}
       <div style={{
@@ -556,7 +580,7 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
 
       {/* canvas */}
       <div ref={wrapRef} style={{
-        position: "relative", width: "100%", aspectRatio: isMobile ? `${CANVAS_SIZE} / ${MOBILE_CANVAS_HEIGHT}` : "1 / 1", borderRadius: 18,
+        position: "relative", width: "100%", aspectRatio: `${playCanvasWidth} / ${playCanvasHeight}`, borderRadius: 18,
         overflow: "hidden", background: "#fff", boxShadow: "0 14px 32px rgba(80,40,70,0.18)",
         border: `1.5px dashed ${PINK}55`,
       }}>
@@ -570,9 +594,7 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
         <img ref={completeImgRef} alt="" src={imageEl?.src ?? ""}
           style={{
             position: "absolute",
-            ...(isMobile
-              ? { left: "5.56%", top: "3.85%", width: "88.89%", height: "61.54%", borderRadius: 14 }
-              : { inset: 0, width: "100%", height: "100%" }),
+            ...completeImageStyle,
             objectFit: "cover",
             opacity: 0, transition: "opacity 0.9s ease", pointerEvents: "none",
           }}
