@@ -194,7 +194,7 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
     });
 
   const panel  = dark ? "#1a1a2e" : "#fff";
-  const border = dark ? "#333" : "#ddd";
+  const border = dark ? "#333" : "#f0d9e8";
   const labelStyle = {
     fontSize: 11, fontWeight: 700,
     color: dark ? "#aaa" : "#666",
@@ -207,7 +207,7 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
       <canvas
         ref={canvasRef}
         style={{
-          width: "100%", display: "block", borderRadius: 4,
+          width: "100%", display: "block", borderRadius: 18,
           border: `1px solid ${border}`,
           cursor: removedSrc ? "grab" : "default",
           touchAction: "none",
@@ -237,10 +237,11 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
       onDrop={e => { e.preventDefault(); handleBgFile(e.dataTransfer.files[0]); }}
       onDragOver={e => e.preventDefault()}
       style={{
-        aspectRatio: "1", border: `4px dashed ${dark ? "#333" : "#bbb"}`,
-        borderRadius: 4, display: "flex", flexDirection: "column",
+        aspectRatio: isMobile ? "16 / 11" : "1", border: "2px dashed #efa3c5",
+        borderRadius: 22, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
-        cursor: "pointer", color: dark ? "#555" : "#aaa", gap: 8,
+        cursor: "pointer", color: "#8b4b78", gap: 8,
+        background: "#fff7fb",
       }}
     >
       <div style={{ fontSize: 48 }}>🏔️</div>
@@ -251,12 +252,12 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
 
   // ── STEP 1 ──
   const step1 = (
-    <div style={{ background: panel, borderRadius: 8, padding: 14, border: `1px solid ${border}` }}>
+    <div style={{ background: panel, borderRadius: 18, padding: 14, border: `1.5px solid ${border}` }}>
       <span style={labelStyle}>STEP 1｜背景写真</span>
       <button onClick={() => document.getElementById("kourin-bg")?.click()}
-        style={{ width: "100%", padding: "10px", borderRadius: 6, fontSize: 13, fontWeight: 700,
+        style={{ width: "100%", padding: "11px", borderRadius: 14, fontSize: 13, fontWeight: 900,
           cursor: "pointer", border: `2px dashed ${border}`,
-          background: bgSrc ? "#f6fff6" : "transparent", color: text }}>
+          background: bgSrc ? "#fff7fb" : "transparent", color: text }}>
         {bgSrc ? "✅ 背景を変更" : "🏔️ 背景写真を選ぶ"}
       </button>
     </div>
@@ -264,32 +265,32 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
 
   // ── STEP 2 ──
   const step2 = (
-    <div style={{ background: panel, borderRadius: 8, padding: 14, border: `1px solid ${border}` }}>
+    <div style={{ background: panel, borderRadius: 18, padding: 14, border: `1.5px solid ${border}` }}>
       <span style={labelStyle}>STEP 2｜うちの子の写真</span>
       <button onClick={() => document.getElementById("kourin-pet")?.click()}
-        style={{ width: "100%", padding: "10px", borderRadius: 6, fontSize: 13, fontWeight: 700,
+        style={{ width: "100%", padding: "11px", borderRadius: 14, fontSize: 13, fontWeight: 900,
           cursor: "pointer", border: `2px dashed ${border}`,
-          background: petSrc ? "#f6fff6" : "transparent", color: text }}>
+          background: petSrc ? "#fff7fb" : "transparent", color: text }}>
         {petSrc ? "✅ 写真を変更" : "🐾 うちの子を選ぶ"}
       </button>
       {petSrc && !removedSrc && (
         <button onClick={handleRemoveBg} disabled={loading}
           style={{
-            width: "100%", marginTop: 8, padding: "12px", borderRadius: 6,
+            width: "100%", marginTop: 8, padding: "12px", borderRadius: 999,
             fontSize: 14, fontWeight: 900,
             cursor: loading ? "not-allowed" : "pointer",
-            background: loading ? "#ccc" : "#e07050", color: "#fff", border: "none",
+            background: loading ? "#ddd6e7" : "linear-gradient(135deg, #f15f9b, #b89bea)", color: "#fff", border: "none",
           }}>
           {loading ? "⏳ 処理中..." : "✨ 背景を除去する"}
         </button>
       )}
       {progress && (
-        <div style={{ fontSize: 11, color: "#e07050", fontWeight: 700, textAlign: "center", marginTop: 6 }}>
+        <div style={{ fontSize: 11, color: "#c878a4", fontWeight: 700, textAlign: "center", marginTop: 6 }}>
           {progress}
         </div>
       )}
       {removedSrc && (
-        <div style={{ fontSize: 11, color: "#4caf50", fontWeight: 700, textAlign: "center", marginTop: 6 }}>
+        <div style={{ fontSize: 11, color: "#8b4b78", fontWeight: 700, textAlign: "center", marginTop: 6 }}>
           ✅ 背景除去完了！画像を直接操作できます
         </div>
       )}
@@ -304,7 +305,7 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
       </span>
       <input type="range" min={min} max={max} step={step} value={value}
         onChange={e => onChange(Number(e.target.value))}
-        style={{ width: "100%", accentColor: "#FFE600", height: 22 }} />
+        style={{ width: "100%", accentColor: "#efa3c5", height: 22 }} />
       {(left || right) && (
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: dark ? "#666" : "#bbb", marginTop: -2 }}>
           <span>{left}</span><span>{right}</span>
@@ -315,11 +316,11 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
 
   // ── 透明度スライダー（モバイル用：透明度のみ） ──
   const opacitySlider = removedSrc ? (
-    <div style={{ background: panel, borderRadius: 8, padding: 14, border: `1px solid ${border}` }}>
+    <div style={{ background: panel, borderRadius: 18, padding: 14, border: `1.5px solid ${border}` }}>
       <span style={labelStyle}>透明度</span>
       <input type="range" min={0.1} max={1.0} step={0.05} value={opacity}
         onChange={e => setOpacity(Number(e.target.value))}
-        style={{ width: "100%", accentColor: "#FFE600", height: 24 }} />
+        style={{ width: "100%", accentColor: "#efa3c5", height: 24 }} />
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: dark ? "#aaa" : "#888", marginTop: 2 }}>
         <span>薄く</span><span>濃く</span>
       </div>
@@ -328,7 +329,7 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
 
   // ── PC用：全スライダー ──
   const pcSliders = removedSrc ? (
-    <div style={{ background: panel, borderRadius: 8, padding: 14, border: `1px solid ${border}`, display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ background: panel, borderRadius: 18, padding: 14, border: `1.5px solid ${border}`, display: "flex", flexDirection: "column", gap: 12 }}>
       <span style={labelStyle}>調整</span>
       {sliderRow("大きさ", scale, 0.1, 1.5, 0.05, setScale)}
       {sliderRow("左右", offsetX, -50, 50, 1, setOffsetX, "←左", "右→")}
@@ -342,7 +343,13 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
     : null;
 
   return (
-    <div style={{ maxWidth: 1080, margin: "0 auto", padding: isMobile ? 12 : 20 }}>
+    <main className="maker-page kourin-page">
+      <section className="maker-mini-hero">
+        <p className="eyebrow">KOURIN MAKER</p>
+        <h1>降臨メーカー</h1>
+        <p>旅先でうちの子が頭から離れないあなたへ</p>
+      </section>
+      <div style={{ maxWidth: 1080, margin: "0 auto", padding: isMobile ? 8 : 16 }}>
 
       <input id="kourin-bg" type="file" accept="image/*" style={{ display: "none" }}
         onChange={e => handleBgFile(e.target.files?.[0] ?? null)} />
@@ -377,6 +384,7 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </main>
   );
 }

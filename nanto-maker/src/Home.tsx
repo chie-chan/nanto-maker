@@ -1,107 +1,95 @@
 import { useNavigate } from "react-router-dom";
 
-interface Props { isMobile: boolean; dark: boolean; }
+interface Props {
+  isMobile: boolean;
+}
 
-export default function Home({ isMobile, dark }: Props) {
+const tools = [
+  {
+    id: "flower",
+    path: "/game",
+    label: "GAME",
+    title: "お花あつめ",
+    sub: "お題のお花だけを集める、すきま時間のミニ脳トレです。",
+    cta: "あそぶ",
+    theme: "pink",
+    thumb: "/thumbs/flower.svg",
+  },
+  {
+    id: "mogura",
+    path: "/mogura",
+    label: "GAME",
+    title: "もぐらたたき",
+    sub: "うちの子がぴょこっと出てくる、タップして遊ぶミニゲームです。",
+    cta: "あそぶ",
+    theme: "pink",
+    thumb: "/thumbs/mogura.svg",
+  },
+  {
+    id: "puzzle",
+    path: "/puzzle",
+    label: "GAME",
+    title: "うちのこ回転パズル",
+    sub: "写真をピースにして、ぐるっと並べて遊ぶジグソーパズル。",
+    cta: "あそぶ",
+    theme: "lavender",
+    thumb: "/thumbs/puzzle.svg",
+  },
+  {
+    id: "kourin",
+    path: "/kourin",
+    label: "FREE",
+    title: "降臨メーカー",
+    sub: "旅先でうちの子が頭から離れないあなたへ。",
+    cta: "作ってみる",
+    theme: "pink",
+    thumb: "/thumbs/kourin.jpg",
+  },
+];
+
+export default function Home({ isMobile }: Props) {
   const navigate = useNavigate();
-  const bg  = dark ? "#0a0010" : "#f0ece4";
-  const text = dark ? "#fff" : "#111";
 
   return (
-    <div style={{ minHeight: "calc(100vh - 80px)", background: bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: isMobile ? "32px 16px" : "60px 24px", gap: 16 }}>
+    <main className="home-page">
+      <section className="home-hero">
+        <p className="eyebrow">UCHINOKO PLAY ROOM</p>
+        <h1>あいこのあそびば</h1>
+        <p>うちの子で遊べるミニゲームと、SNSに使える小さなメーカーをまとめています。</p>
+      </section>
 
-      <div style={{ fontSize: isMobile ? 14 : 16, fontWeight: 900, letterSpacing: 4, color: "#999", textTransform: "uppercase", marginBottom: 8 }}>
-        WHAT DO YOU WANT TO MAKE?
-      </div>
+      <section className="tool-list" aria-label="ミニツール一覧">
+        {tools.map((tool) => (
+          <button
+            key={tool.id}
+            className={`tool-card ${tool.theme}`}
+            type="button"
+            onClick={() => navigate(tool.path)}
+          >
+            {tool.thumb && (
+              <span className="tool-thumb" aria-hidden="true">
+                <img src={tool.thumb} alt="" />
+              </span>
+            )}
+            <span className="tool-badge">{tool.label}</span>
+            <span className="tool-title">{tool.title}</span>
+            <span className="tool-sub">{tool.sub}</span>
+            <span className="tool-cta">{tool.cta} →</span>
+          </button>
+        ))}
+      </section>
 
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 20, width: "100%", maxWidth: 980 }}>
+      <section className="home-order">
+        <div>
+          <strong>自分で仕上げるのが難しい方へ</strong>
+          <p>うちの子グッズのオーダーメイド制作を承ります。</p>
+        </div>
+        <a href="https://aikoanimal.base.shop/" target="_blank" rel="noopener noreferrer">
+          BASE SHOPを見る
+        </a>
+      </section>
 
-        {/* ゲーム */}
-        <button
-          onClick={() => navigate("/game")}
-          style={{
-            border: "4px solid #111", background: "#111", color: "#FFE600",
-            padding: isMobile ? "36px 20px" : "48px 28px",
-            cursor: "pointer", textAlign: "left",
-            fontFamily: "'Arial Black','Helvetica Neue',sans-serif",
-            display: "flex", flexDirection: "column", gap: 10,
-            transition: "transform 0.1s",
-          }}
-          onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.02)")}
-          onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
-        >
-          <div style={{ fontSize: isMobile ? 44 : 56 }}>🎮</div>
-          <div style={{ fontSize: isMobile ? 24 : 30, fontWeight: 900, letterSpacing: -1, lineHeight: 1.1 }}>
-            ゲーム
-          </div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", lineHeight: 1.6 }}>
-            うちの子もぐらたたき<br />
-            写真を入れて遊ぼう！
-          </div>
-          <div style={{ marginTop: 8, fontSize: 13, fontWeight: 900, color: "#FFE600", letterSpacing: 1 }}>
-            PLAY →
-          </div>
-        </button>
-
-        {/* メーカー */}
-        <button
-          onClick={() => navigate("/maker")}
-          style={{
-            border: "4px solid #111", background: "#FFE600", color: "#111",
-            padding: isMobile ? "36px 20px" : "48px 28px",
-            cursor: "pointer", textAlign: "left",
-            fontFamily: "'Arial Black','Helvetica Neue',sans-serif",
-            display: "flex", flexDirection: "column", gap: 10,
-            transition: "transform 0.1s",
-          }}
-          onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.02)")}
-          onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
-        >
-          <div style={{ fontSize: isMobile ? 44 : 56 }}>🖼️</div>
-          <div style={{ fontSize: isMobile ? 24 : 30, fontWeight: 900, letterSpacing: -1, lineHeight: 1.1 }}>
-            画像メーカー
-          </div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#555", lineHeight: 1.6 }}>
-            うちの子降臨メーカー<br />
-            集中線なんとメーカー
-          </div>
-          <div style={{ marginTop: 8, fontSize: 13, fontWeight: 900, color: "#111", letterSpacing: 1 }}>
-            CREATE →
-          </div>
-        </button>
-
-        {/* クイズ */}
-        <button
-          onClick={() => navigate("/quiz")}
-          style={{
-            border: "4px solid #111", background: "#e07050", color: "#fff",
-            padding: isMobile ? "36px 20px" : "48px 28px",
-            cursor: "pointer", textAlign: "left",
-            fontFamily: "'Arial Black','Helvetica Neue',sans-serif",
-            display: "flex", flexDirection: "column", gap: 10,
-            transition: "transform 0.1s",
-          }}
-          onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.02)")}
-          onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
-        >
-          <div style={{ fontSize: isMobile ? 44 : 56 }}>🌹</div>
-          <div style={{ fontSize: isMobile ? 24 : 30, fontWeight: 900, letterSpacing: -1, lineHeight: 1.1 }}>
-            クイズ
-          </div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)", lineHeight: 1.6 }}>
-            私のことわかってる？<br />
-            クイズを作って相手に送ろう！
-          </div>
-          <div style={{ marginTop: 8, fontSize: 13, fontWeight: 900, color: "#fff", letterSpacing: 1 }}>
-            START →
-          </div>
-        </button>
-
-      </div>
-
-      <p style={{ fontSize: 11, color: "#aaa", marginTop: 16, textAlign: "center", lineHeight: 1.8 }}>
-        無料・ダウンロード不要・SNSにシェアできる🐾
-      </p>
-    </div>
+      {isMobile && <div className="mobile-bottom-space" />}
+    </main>
   );
 }

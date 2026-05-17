@@ -11,8 +11,8 @@ export interface Scheme {
 }
 
 export const SCHEMES: Scheme[] = [
-  { id: "manga",  label: "マンガ",   bg: "#ffffff", line: "#111111", accent: "#FFE600", tFill: "#111111", tStroke: "#ffffff", card: "#ffffff", cardBorder: "#111111" },
-  { id: "shock",  label: "衝撃",     bg: "#111111", line: "#FFE600", accent: "#ffffff", tFill: "#ff2d55", tStroke: "#ffffff", card: "#ffffff", cardBorder: "#FFE600" },
+  { id: "manga",  label: "マンガ",   bg: "#fff7fb", line: "#8b4b78", accent: "#f15f9b", tFill: "#8b4b78", tStroke: "#ffffff", card: "#ffffff", cardBorder: "#efa3c5" },
+  { id: "shock",  label: "衝撃",     bg: "#f4eaff", line: "#b89bea", accent: "#f15f9b", tFill: "#8b4b78", tStroke: "#ffffff", card: "#ffffff", cardBorder: "#b89bea" },
   { id: "retro",  label: "昭和",     bg: "#f5ecd7", line: "#3b2a14", accent: "#cc3300", tFill: "#cc3300", tStroke: "#f5ecd7", card: "#fffff0", cardBorder: "#3b2a14" },
   { id: "neon",   label: "ネオン",   bg: "#0a0020", line: "#00ffcc", accent: "#ff00ff", tFill: "#ff00ff", tStroke: "#ffffff", card: "#ffffff", cardBorder: "#00ffcc" },
 ];
