@@ -14,6 +14,15 @@ const DIFFICULTY: Record<Difficulty, { rows: number; cols: number; label: string
 const PINK = "#ff7aa8";
 const PINK_DARK = "#c94279";
 const LAVENDER = "#c8b4e8";
+const CANVAS_SIZE = 1080;
+const MOBILE_CANVAS_HEIGHT = 1560;
+
+interface Rect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 
 interface Piece {
   id: number;
@@ -27,6 +36,41 @@ interface Piece {
 function clamp(v: number, mn: number, mx: number) { return Math.max(mn, Math.min(mx, v)); }
 function mulberry32(seed: number) { return function() { let t = seed += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function formatTime(ms: number) { const t = Math.max(0, Math.floor(ms / 1000)); return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`; }
+
+function getPuzzleLayout(cw: number, ch: number, mobile: boolean): { board: Rect; tray?: Rect } {
+  if (!mobile) return { board: { x: 0, y: 0, w: cw, h: ch } };
+
+  const pad = Math.round(cw * 0.056);
+  const boardSize = cw - pad * 2;
+  const board = { x: pad, y: pad, w: boardSize, h: boardSize };
+  const trayTop = board.y + board.h + Math.round(cw * 0.05);
+  const tray = {
+    x: pad,
+    y: trayTop,
+    w: boardSize,
+    h: Math.max(260, ch - trayTop - pad),
+  };
+  return { board, tray };
+}
+
+function mapPoly(poly: { x: number; y: number }[], rect: Rect) {
+  return poly.map(pt => ({ x: rect.x + pt.x * rect.w, y: rect.y + pt.y * rect.h }));
+}
+
+function drawRoundedRect(ctx: CanvasRenderingContext2D, rect: Rect, radius: number) {
+  const r = Math.min(radius, rect.w / 2, rect.h / 2);
+  ctx.beginPath();
+  ctx.moveTo(rect.x + r, rect.y);
+  ctx.lineTo(rect.x + rect.w - r, rect.y);
+  ctx.quadraticCurveTo(rect.x + rect.w, rect.y, rect.x + rect.w, rect.y + r);
+  ctx.lineTo(rect.x + rect.w, rect.y + rect.h - r);
+  ctx.quadraticCurveTo(rect.x + rect.w, rect.y + rect.h, rect.x + rect.w - r, rect.y + rect.h);
+  ctx.lineTo(rect.x + r, rect.y + rect.h);
+  ctx.quadraticCurveTo(rect.x, rect.y + rect.h, rect.x, rect.y + rect.h - r);
+  ctx.lineTo(rect.x, rect.y + r);
+  ctx.quadraticCurveTo(rect.x, rect.y, rect.x + r, rect.y);
+  ctx.closePath();
+}
 
 export default function Puzzle({ isMobile, dark, text }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -58,6 +102,7 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const cw = canvas.width, ch = canvas.height;
+    const layout = getPuzzleLayout(cw, ch, isMobile);
 
     // background
     const grad = ctx.createLinearGradient(0, 0, cw, ch);
@@ -71,13 +116,38 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
       ctx.beginPath(); ctx.arc(rx * cw, ry * ch, cw * 0.018, 0, Math.PI * 2); ctx.fill(); ctx.restore();
     });
 
+    if (isMobile && layout.tray) {
+      ctx.save();
+      drawRoundedRect(ctx, layout.board, 28);
+      ctx.fillStyle = "rgba(255,255,255,0.72)";
+      ctx.fill();
+      ctx.setLineDash([10, 10]);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(255,122,168,0.38)";
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.save();
+      drawRoundedRect(ctx, layout.tray, 28);
+      ctx.fillStyle = "rgba(255,255,255,0.62)";
+      ctx.fill();
+      ctx.setLineDash([12, 10]);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(200,180,232,0.5)";
+      ctx.stroke();
+      ctx.fillStyle = "rgba(122,74,94,0.74)";
+      ctx.font = "800 28px sans-serif";
+      ctx.fillText("ピース置き場", layout.tray.x + 28, layout.tray.y + 42);
+      ctx.restore();
+    }
+
     if (!imageEl) return;
 
     // target outlines (dashed)
     ctx.save(); ctx.globalAlpha = 0.25; ctx.strokeStyle = PINK; ctx.setLineDash([6, 6]); ctx.lineWidth = 1.4;
     piecesRef.current.forEach(p => {
       if (p.solved) return;
-      const poly = p.poly.map(pt => ({ x: pt.x * cw, y: pt.y * ch }));
+      const poly = mapPoly(p.poly, layout.board);
       const path = new Path2D();
       poly.forEach((pt, i) => { i === 0 ? path.moveTo(pt.x, pt.y) : path.lineTo(pt.x, pt.y); });
       path.closePath(); ctx.stroke(path);
@@ -90,12 +160,12 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
       const bActive = dragRef.current?.piece === b ? 1 : 0;
       return aActive - bActive;
     });
-    ordered.forEach(p => drawPiece(ctx, p, cw, ch));
-  }, [imageEl]);
+    ordered.forEach(p => drawPiece(ctx, p, layout.board, cw, ch));
+  }, [imageEl, isMobile]);
 
-  const drawPiece = (ctx: CanvasRenderingContext2D, piece: Piece, cw: number, ch: number) => {
+  const drawPiece = (ctx: CanvasRenderingContext2D, piece: Piece, board: Rect, cw: number, ch: number) => {
     if (!imageEl) return;
-    const target = piece.poly.map(pt => ({ x: pt.x * cw, y: pt.y * ch }));
+    const target = mapPoly(piece.poly, board);
     const targetC = { x: target.reduce((s, p) => s + p.x, 0) / target.length, y: target.reduce((s, p) => s + p.y, 0) / target.length };
     const c = { x: piece.x, y: piece.y };
     const display = target.map(pt => {
@@ -121,7 +191,7 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
     // image fill
     ctx.save(); ctx.clip(path);
     ctx.translate(c.x, c.y); ctx.rotate(piece.angle * Math.PI / 180); ctx.translate(-targetC.x, -targetC.y);
-    drawImageCover(ctx, imageEl, cw, ch);
+    drawImageCover(ctx, imageEl, board);
     ctx.restore();
 
     // inner highlight
@@ -142,12 +212,12 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
     ctx.stroke(path); ctx.restore();
   };
 
-  const drawImageCover = (ctx: CanvasRenderingContext2D, img: HTMLImageElement, cw: number, ch: number) => {
+  const drawImageCover = (ctx: CanvasRenderingContext2D, img: HTMLImageElement, rect: Rect) => {
     const iw = img.naturalWidth || img.width;
     const ih = img.naturalHeight || img.height;
-    const scale = Math.max(cw / iw, ch / ih);
+    const scale = Math.max(rect.w / iw, rect.h / ih);
     const w = iw * scale, h = ih * scale;
-    ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
+    ctx.drawImage(img, rect.x + (rect.w - w) / 2, rect.y + (rect.h - h) / 2, w, h);
   };
 
   /* ---------- piece generation ---------- */
@@ -155,6 +225,8 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
     const canvas = canvasRef.current;
     if (!canvas || !imageEl) return;
     const cw = canvas.width, ch = canvas.height;
+    const layout = getPuzzleLayout(cw, ch, isMobile);
+    const { board, tray } = layout;
     const { rows, cols } = DIFFICULTY[difficulty];
     const rand = mulberry32(Date.now() & 0xffffff);
     const margin = 0.04;
@@ -171,24 +243,42 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
       grid.push(row);
     }
     const pieces: Piece[] = [];
+    const total = rows * cols;
+    const trayCols = tray ? Math.ceil(Math.sqrt(total * (tray.w / tray.h))) : 0;
+    const trayRows = tray ? Math.ceil(total / trayCols) : 0;
+    const trayCellW = tray && trayCols ? tray.w / trayCols : 0;
+    const trayCellH = tray && trayRows ? tray.h / trayRows : 0;
+
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < cols; x++) {
         const poly = [grid[y][x], grid[y][x + 1], grid[y + 1][x + 1], grid[y + 1][x]];
-        const targetCx = poly.reduce((s, p) => s + p.x, 0) / 4 * cw;
-        const targetCy = poly.reduce((s, p) => s + p.y, 0) / 4 * ch;
-        // scatter around outer band
-        const side = Math.floor(rand() * 4);
-        const radius = Math.max(cw / cols, ch / rows) * 0.7;
-        const xMin = radius + cw * 0.04, xMax = cw - radius - cw * 0.04;
-        const yMin = radius + ch * 0.04, yMax = ch - radius - ch * 0.04;
+        const targetCx = board.x + poly.reduce((s, p) => s + p.x, 0) / 4 * board.w;
+        const targetCy = board.y + poly.reduce((s, p) => s + p.y, 0) / 4 * board.h;
         let px = targetCx, py = targetCy;
-        if (side === 0)      { px = xMin + rand() * (xMax - xMin); py = yMin + rand() * ch * 0.16; }
-        else if (side === 1) { px = xMin + rand() * (xMax - xMin); py = yMax - rand() * ch * 0.16; }
-        else if (side === 2) { px = xMin + rand() * cw * 0.18; py = yMin + rand() * (yMax - yMin); }
-        else                 { px = xMax - rand() * cw * 0.18; py = yMin + rand() * (yMax - yMin); }
+
+        if (tray && trayCols && trayRows) {
+          const index = pieces.length;
+          const col = index % trayCols;
+          const row = Math.floor(index / trayCols);
+          px = tray.x + trayCellW * (col + 0.5) + (rand() - 0.5) * trayCellW * 0.4;
+          py = tray.y + trayCellH * (row + 0.5) + (rand() - 0.5) * trayCellH * 0.35;
+          px = clamp(px, tray.x + trayCellW * 0.3, tray.x + tray.w - trayCellW * 0.3);
+          py = clamp(py, tray.y + trayCellH * 0.45, tray.y + tray.h - trayCellH * 0.25);
+        } else {
+          // scatter around outer band
+          const side = Math.floor(rand() * 4);
+          const radius = Math.max(board.w / cols, board.h / rows) * 0.7;
+          const xMin = radius + cw * 0.04, xMax = cw - radius - cw * 0.04;
+          const yMin = radius + ch * 0.04, yMax = ch - radius - ch * 0.04;
+          if (side === 0)      { px = xMin + rand() * (xMax - xMin); py = yMin + rand() * ch * 0.16; }
+          else if (side === 1) { px = xMin + rand() * (xMax - xMin); py = yMax - rand() * ch * 0.16; }
+          else if (side === 2) { px = xMin + rand() * cw * 0.18; py = yMin + rand() * (yMax - yMin); }
+          else                 { px = xMax - rand() * cw * 0.18; py = yMin + rand() * (yMax - yMin); }
+        }
+
         pieces.push({
           id: pieces.length + 1, poly, angle: [90, 180, 270][Math.floor(rand() * 3)],
-          x: clamp(px, xMin, xMax), y: clamp(py, yMin, yMax), solved: false, placed: false,
+          x: px, y: py, solved: false, placed: false,
         });
       }
     }
@@ -199,7 +289,7 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
     if (timerIdRef.current) clearInterval(timerIdRef.current);
     completedRef.current = false;
     drawAll();
-  }, [imageEl, difficulty, drawAll]);
+  }, [imageEl, difficulty, drawAll, isMobile]);
 
   /* ---------- timer ---------- */
   const startTimer = () => {
@@ -219,16 +309,18 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
 
   /* ---------- interactions ---------- */
   const targetCenter = (piece: Piece, cw: number, ch: number) => {
-    const cx = piece.poly.reduce((s, p) => s + p.x, 0) / 4 * cw;
-    const cy = piece.poly.reduce((s, p) => s + p.y, 0) / 4 * ch;
+    const { board } = getPuzzleLayout(cw, ch, isMobile);
+    const cx = board.x + piece.poly.reduce((s, p) => s + p.x, 0) / 4 * board.w;
+    const cy = board.y + piece.poly.reduce((s, p) => s + p.y, 0) / 4 * board.h;
     return { x: cx, y: cy };
   };
 
   const snapIfClose = (piece: Piece) => {
     const canvas = canvasRef.current!;
+    const { board } = getPuzzleLayout(canvas.width, canvas.height, isMobile);
     const t = targetCenter(piece, canvas.width, canvas.height);
     const dist = Math.hypot(piece.x - t.x, piece.y - t.y);
-    const snap = Math.max(38, canvas.width * 0.05);
+    const snap = Math.max(34, board.w * 0.05);
     if (dist <= snap) {
       piece.x = t.x; piece.y = t.y; piece.placed = true;
       if (piece.angle === 0) piece.solved = true;
@@ -254,10 +346,11 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
   const pieceAt = (x: number, y: number) => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
+    const { board } = getPuzzleLayout(canvas.width, canvas.height, isMobile);
     for (let i = piecesRef.current.length - 1; i >= 0; i--) {
       const p = piecesRef.current[i];
       if (p.solved) continue;
-      const target = p.poly.map(pt => ({ x: pt.x * canvas.width, y: pt.y * canvas.height }));
+      const target = mapPoly(p.poly, board);
       const tc = { x: target.reduce((s, q) => s + q.x, 0) / 4, y: target.reduce((s, q) => s + q.y, 0) / 4 };
       const display = target.map(pt => {
         const sx = pt.x + p.x - tc.x, sy = pt.y + p.y - tc.y;
@@ -342,8 +435,18 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
     checkComplete(); drawAll();
   };
 
-  const download = () => {
+  const getResultCanvas = () => {
     const canvas = canvasRef.current; if (!canvas) return;
+    const { board } = getPuzzleLayout(canvas.width, canvas.height, isMobile);
+    const out = document.createElement("canvas");
+    out.width = CANVAS_SIZE;
+    out.height = CANVAS_SIZE;
+    out.getContext("2d")?.drawImage(canvas, board.x, board.y, board.w, board.h, 0, 0, out.width, out.height);
+    return out;
+  };
+
+  const download = () => {
+    const canvas = getResultCanvas(); if (!canvas) return;
     const a = document.createElement("a");
     a.href = canvas.toDataURL("image/png");
     a.download = `uchinoko-puzzle-${new Date().toISOString().slice(0, 10)}.png`;
@@ -351,7 +454,12 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
   };
 
   const getBlob = (): Promise<Blob | null> => new Promise(resolve => {
-    canvasRef.current?.toBlob(b => resolve(b), "image/png");
+    const canvas = getResultCanvas();
+    if (!canvas) {
+      resolve(null);
+      return;
+    }
+    canvas.toBlob(b => resolve(b), "image/png");
   });
 
   /* ---------- file upload ---------- */
@@ -378,10 +486,10 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
     if (phase !== "play" || !imageEl) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.width = 1080;
-    canvas.height = 1080;
+    canvas.width = CANVAS_SIZE;
+    canvas.height = isMobile ? MOBILE_CANVAS_HEIGHT : CANVAS_SIZE;
     generatePieces();
-  }, [phase, imageEl, difficulty, generatePieces]);
+  }, [phase, imageEl, difficulty, generatePieces, isMobile]);
 
   useEffect(() => () => { if (timerIdRef.current) clearInterval(timerIdRef.current); }, []);
 
@@ -448,7 +556,7 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
 
       {/* canvas */}
       <div ref={wrapRef} style={{
-        position: "relative", width: "100%", aspectRatio: "1 / 1", borderRadius: 18,
+        position: "relative", width: "100%", aspectRatio: isMobile ? `${CANVAS_SIZE} / ${MOBILE_CANVAS_HEIGHT}` : "1 / 1", borderRadius: 18,
         overflow: "hidden", background: "#fff", boxShadow: "0 14px 32px rgba(80,40,70,0.18)",
         border: `1.5px dashed ${PINK}55`,
       }}>
@@ -461,7 +569,11 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
         />
         <img ref={completeImgRef} alt="" src={imageEl?.src ?? ""}
           style={{
-            position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover",
+            position: "absolute",
+            ...(isMobile
+              ? { left: "5.56%", top: "3.85%", width: "88.89%", height: "61.54%", borderRadius: 14 }
+              : { inset: 0, width: "100%", height: "100%" }),
+            objectFit: "cover",
             opacity: 0, transition: "opacity 0.9s ease", pointerEvents: "none",
           }}
           className=""
@@ -500,7 +612,7 @@ export default function Puzzle({ isMobile, dark, text }: Props) {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
           <button onClick={shuffle}
             style={{ padding: 10, borderRadius: 10, fontWeight: 800, color: "#fff", background: PINK, border: "none", cursor: "pointer" }}>
-            🔄 シャッフル
+            {isMobile ? "混ぜる" : "🔄 シャッフル"}
           </button>
           <button onClick={solveOne}
             style={{ padding: 10, borderRadius: 10, fontWeight: 800, color: "#0f3b35", background: "linear-gradient(135deg, #5fe4d2, #2dc5b3)", border: "none", cursor: "pointer" }}>
