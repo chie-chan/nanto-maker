@@ -182,7 +182,7 @@ input[type="range"] {
 
 .tool-list {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -1870,7 +1870,7 @@ input[type="range"] {
   }
 
   .brand strong {
-    max-width: 112px;
+    max-width: 94px;
     overflow: hidden;
     font-size: 13px;
     text-overflow: ellipsis;
@@ -1880,6 +1880,7 @@ input[type="range"] {
     flex: 1 1 auto;
     width: auto;
     margin-left: 0;
+    gap: 5px;
     padding-bottom: 2px;
   }
 
@@ -1887,7 +1888,7 @@ input[type="range"] {
     flex: 0 0 auto;
     justify-content: center;
     min-height: 32px;
-    padding: 6px 10px;
+    padding: 6px 8px;
     font-size: 11px;
   }
 

@@ -6,14 +6,14 @@ interface Props {
 
 const tools = [
   {
-    id: "flower",
-    path: "/game",
+    id: "puzzle",
+    path: "/puzzle",
     label: "GAME",
-    title: "お花あつめ",
-    sub: "お題のお花だけを集める、すきま時間のミニ脳トレです。",
+    title: "うちのこ回転パズル",
+    sub: "写真をピースにして、ぐるっと並べて遊ぶジグソーパズル。",
     cta: "あそぶ",
-    theme: "pink",
-    thumb: "/thumbs/flower.svg",
+    theme: "lavender",
+    thumb: "/thumbs/puzzle.svg",
   },
   {
     id: "mogura",
@@ -24,16 +24,6 @@ const tools = [
     cta: "あそぶ",
     theme: "pink",
     thumb: "/thumbs/mogura.svg",
-  },
-  {
-    id: "puzzle",
-    path: "/puzzle",
-    label: "GAME",
-    title: "うちのこ回転パズル",
-    sub: "写真をピースにして、ぐるっと並べて遊ぶジグソーパズル。",
-    cta: "あそぶ",
-    theme: "lavender",
-    thumb: "/thumbs/puzzle.svg",
   },
   {
     id: "kourin",

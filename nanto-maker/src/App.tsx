@@ -24,10 +24,9 @@ function useWindowWidth() {
 
 const navItems = [
   { path: "/", label: "あそびば" },
-  { path: "/game", label: "お花" },
-  { path: "/kourin", label: "降臨" },
-  { path: "/mogura", label: "もぐら" },
   { path: "/puzzle", label: "パズル" },
+  { path: "/mogura", label: "もぐら" },
+  { path: "/kourin", label: "降臨" },
 ];
 
 export default function App() {
