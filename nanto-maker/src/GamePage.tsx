@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface Props {
   isMobile: boolean;
@@ -20,6 +20,10 @@ type Rule = {
   kind: FlowerKind;
   label: string;
   hint: string;
+};
+
+type AudioContextWindow = Window & typeof globalThis & {
+  webkitAudioContext?: typeof AudioContext;
 };
 
 const GAME_SECONDS = 38;
@@ -105,6 +109,7 @@ function getNextRank(score: number) {
 }
 
 export default function GamePage({ isMobile }: Props) {
+  const audioContextRef = useRef<AudioContext | null>(null);
   const [phase, setPhase] = useState<Phase>("intro");
   const [rule, setRule] = useState<Rule>(() => chooseNextRule());
   const [board, setBoard] = useState<FlowerCard[]>(() => createBoard(RULES[0]));
@@ -122,6 +127,54 @@ export default function GamePage({ isMobile }: Props) {
   const nextRank = useMemo(() => getNextRank(score), [score]);
   const progress = Math.max(0, Math.min(100, (timeLeft / GAME_SECONDS) * 100));
   const imagesReady = loadedImages >= GAME_IMAGE_SOURCES.length;
+
+  function getAudioContext() {
+    if (audioContextRef.current) return audioContextRef.current;
+    const AudioContextClass = window.AudioContext || (window as AudioContextWindow).webkitAudioContext;
+    if (!AudioContextClass) return null;
+    const context = new AudioContextClass();
+    audioContextRef.current = context;
+    return context;
+  }
+
+  function unlockSound() {
+    const context = getAudioContext();
+    if (context?.state === "suspended") {
+      context.resume().catch(() => undefined);
+    }
+  }
+
+  function playRuleChangeSound() {
+    const context = getAudioContext();
+    if (!context) return;
+
+    if (context.state === "suspended") {
+      context.resume().catch(() => undefined);
+    }
+
+    const now = context.currentTime;
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.09, now + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+    gain.connect(context.destination);
+
+    const first = context.createOscillator();
+    first.type = "sine";
+    first.frequency.setValueAtTime(880, now);
+    first.frequency.exponentialRampToValueAtTime(1180, now + 0.09);
+    first.connect(gain);
+    first.start(now);
+    first.stop(now + 0.12);
+
+    const second = context.createOscillator();
+    second.type = "triangle";
+    second.frequency.setValueAtTime(1320, now + 0.08);
+    second.frequency.exponentialRampToValueAtTime(1760, now + 0.17);
+    second.connect(gain);
+    second.start(now + 0.08);
+    second.stop(now + 0.22);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -149,6 +202,7 @@ export default function GamePage({ isMobile }: Props) {
       return;
     }
 
+    unlockSound();
     const firstRule = chooseNextRule();
     setRule(firstRule);
     setBoard(createBoard(firstRule));
@@ -164,6 +218,7 @@ export default function GamePage({ isMobile }: Props) {
   }
 
   function changeRule() {
+    playRuleChangeSound();
     setRule((current) => {
       const next = chooseNextRule(current);
       setBoard(createBoard(next));
@@ -344,7 +399,6 @@ export default function GamePage({ isMobile }: Props) {
                   <span className="flower-image-wrap">
                     <img src={src} alt="" draggable={false} loading="eager" decoding="sync" />
                   </span>
-                  <small className="flower-label">{card.trap ? "おやすみ" : "タップ"}</small>
                 </button>
               );
             })}
