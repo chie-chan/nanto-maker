@@ -359,7 +359,7 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
       <span style={{ fontSize: 22, lineHeight: 1 }}>{nextHint.n === 3 ? "🎉" : "👉"}</span>
       <div>
         <div style={{ fontSize: 11, fontWeight: 700, color: dark ? "#bba8c8" : "#b06a96" }}>
-          つぎにやること（STEP {nextHint.n} / 3）
+          {nextHint.n === 1 ? "はじめに" : nextHint.n === 3 ? "さいごに" : "つぎにやること"}（STEP {nextHint.n} / 3）
         </div>
         <div style={{ fontSize: 13, fontWeight: 800, color: text }}>{nextHint.msg}</div>
       </div>
