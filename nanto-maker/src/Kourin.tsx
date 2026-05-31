@@ -342,12 +342,37 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
     ? <ShareBar getBlob={getBlob} dark={dark} />
     : null;
 
+  // ── つぎにやること（迷子防止ガイド） ──
+  const nextHint = !bgSrc
+    ? { n: 1, msg: "まずは旅先や風景の【背景写真】を選んでね" }
+    : !petSrc
+    ? { n: 2, msg: "次に【うちの子の写真】を選んでね" }
+    : !removedSrc
+    ? { n: 2, msg: "「✨ 背景を除去する」を押してね（初回は少し待ちます）" }
+    : { n: 3, msg: "うちの子をドラッグで好きな位置へ！できたら下の保存ボタンで完成🎉" };
+
+  const guideBanner = (
+    <div style={{
+      background: dark ? "#2a1f33" : "linear-gradient(135deg,#fff0f7,#f3ecff)",
+      border: `1.5px solid ${border}`, borderRadius: 16, padding: "11px 14px",
+      marginBottom: 14, display: "flex", gap: 10, alignItems: "center",
+    }}>
+      <span style={{ fontSize: 22, lineHeight: 1 }}>{nextHint.n === 3 ? "🎉" : "👉"}</span>
+      <div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: dark ? "#bba8c8" : "#b06a96" }}>
+          つぎにやること（STEP {nextHint.n} / 3）
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 800, color: text }}>{nextHint.msg}</div>
+      </div>
+    </div>
+  );
+
   return (
     <main className="maker-page kourin-page">
       <section className="maker-mini-hero">
         <p className="eyebrow">KOURIN MAKER</p>
         <h1>降臨メーカー</h1>
-        <p>旅先でうちの子が頭から離れないあなたへ</p>
+        <p>風景写真に、背景を消したうちの子を重ねて“降臨”させる合成メーカー。<br />①背景を選ぶ → ②うちの子を選ぶ → ③配置して保存、の3ステップ。</p>
       </section>
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: isMobile ? 8 : 16 }}>
 
@@ -355,6 +380,8 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
         onChange={e => handleBgFile(e.target.files?.[0] ?? null)} />
       <input id="kourin-pet" type="file" accept="image/*" style={{ display: "none" }}
         onChange={e => handlePetFile(e.target.files?.[0] ?? null)} />
+
+      {guideBanner}
 
       {isMobile ? (
         /* ── モバイル：STEP1 → STEP2 → プレビュー → 透明度 → DL ── */
