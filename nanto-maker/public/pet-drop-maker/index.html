@@ -53,9 +53,15 @@
   <div class="stage"><canvas id="stage" width="720" height="1280"></canvas></div>
   <div class="row">
     <button type="button" id="play" class="btn" disabled>▶ プレビュー</button>
-    <button type="button" id="rec" class="btn" disabled>⬇ 動画をつくる＆保存</button>
+    <button type="button" id="rec" class="btn" disabled>🎬 動画をつくる</button>
   </div>
   <div class="status" id="status2"></div>
+
+  <div id="result" style="display:none;">
+    <video id="resultVideo" playsinline controls style="width:100%;border-radius:12px;background:#000;margin-top:8px;"></video>
+    <button type="button" id="save" class="btn">📲 写真に保存・シェア</button>
+    <p class="note" id="saveHelp"></p>
+  </div>
   <a id="dl" class="dl">download</a>
 
   <p class="note">
@@ -283,6 +289,9 @@ function runAnimation(onDone){
 
 $('play').onclick=()=>{ if(animating||!pieces.length) return; setStatus2('▶ 再生中…'); runAnimation(()=>setStatus2('✓ 再生おわり')); };
 
+let lastBlob=null, lastName='';
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+
 $('rec').onclick=()=>{
   if(animating||!pieces.length) return;
   if(!window.MediaRecorder){ setStatus2('この端末は録画に未対応です（プレビューは見られます）'); return; }
@@ -290,10 +299,35 @@ $('rec').onclick=()=>{
   let mime='video/mp4'; if(!MediaRecorder.isTypeSupported(mime)) mime='video/webm;codecs=vp9'; if(!MediaRecorder.isTypeSupported(mime)) mime='video/webm';
   const rec=new MediaRecorder(stream,{ mimeType:mime, videoBitsPerSecond:8_000_000 }); const chunks=[];
   rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
-  rec.onstop=()=>{ const blob=new Blob(chunks,{type:mime}); const url=URL.createObjectURL(blob); const ext=mime.includes('mp4')?'mp4':'webm';
-    const dl=$('dl'); dl.href=url; dl.download='uchinoko_'+Date.now()+'.'+ext; dl.style.display='inline'; dl.click(); setStatus2('✓ 保存しました（'+ext+'）'); };
-  setStatus2('⬇ 動画を作成中…（最後まで再生されます）');
+  rec.onstop=()=>{
+    const ext=mime.includes('mp4')?'mp4':'webm';
+    lastBlob=new Blob(chunks,{type:mime}); lastName='uchinoko_pita_'+Date.now()+'.'+ext;
+    $('resultVideo').src=URL.createObjectURL(lastBlob);
+    $('result').style.display='block';
+    $('saveHelp').innerHTML = isIOS
+      ? '👆「📲 写真に保存・シェア」を押して、メニューの<b>「ビデオを保存」</b>を選ぶと、iPhoneの写真（カメラロール）に入ります。'
+      : '「📲 写真に保存・シェア」から保存できます（動画を長押し／右クリックでも保存できます）。';
+    setStatus2('✅ 動画ができました！下で確認して保存してね'+(ext==='webm'?'（この端末はwebm形式）':''));
+    $('result').scrollIntoView({behavior:'smooth', block:'center'});
+  };
+  setStatus2('🎬 動画を作成中…（最後まで再生されます）');
+  $('result').style.display='none';
   rec.start(); runAnimation(()=>setTimeout(()=>rec.stop(),250));
+};
+
+// 保存・シェア（iOSは共有シートから「ビデオを保存」で写真に入る）
+$('save').onclick=async ()=>{
+  if(!lastBlob) return;
+  try{
+    const file=new File([lastBlob], lastName, {type:lastBlob.type});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:'うちのこ ピタ止め動画'});
+      setStatus2('✓ 共有メニューから「ビデオを保存」できます');
+    }else{
+      const a=$('dl'); a.href=URL.createObjectURL(lastBlob); a.download=lastName; a.click();
+      setStatus2('✓ ダウンロードしました');
+    }
+  }catch(err){ /* ユーザーがキャンセルした場合など */ }
 };
 
 // ---- helpers ----
