@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { removeBackground } from "@imgly/background-removal";
 import ShareBar from "./ShareBar";
 
-const SIZE = 1080;
+const MAXOUT = 1280; // 出力の最大長辺(px)。元写真の比率を保ったまま、これを上限に書き出す
 
 interface Props {
   isMobile: boolean;
@@ -42,26 +42,25 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    canvas.width = SIZE;
-    canvas.height = SIZE;
-    ctx.clearRect(0, 0, SIZE, SIZE);
-
     const bgImg = new Image();
     bgImg.onload = () => {
       const bw = bgImg.width, bh = bgImg.height;
-      const scale_bg = Math.max(SIZE / bw, SIZE / bh);
-      const dw = bw * scale_bg, dh = bh * scale_bg;
-      const dx = (SIZE - dw) / 2, dy = (SIZE - dh) / 2;
-      ctx.drawImage(bgImg, dx, dy, dw, dh);
+      // 元写真の比率そのまま（長辺を MAXOUT に収める）
+      const s = Math.min(1, MAXOUT / Math.max(bw, bh));
+      const CW = Math.round(bw * s), CH = Math.round(bh * s);
+      canvas.width = CW;
+      canvas.height = CH;
+      ctx.clearRect(0, 0, CW, CH);
+      ctx.drawImage(bgImg, 0, 0, CW, CH); // 同じ比率なのでそのまま全面に描画
 
       if (removedSrc) {
         const petImg = new Image();
         petImg.onload = () => {
           const pw = petImg.width, ph = petImg.height;
-          const petW = SIZE * scale;
+          const petW = CW * scale;
           const petH = (ph / pw) * petW;
-          const px = (SIZE - petW) / 2 + offsetX * SIZE * 0.01;
-          const py = (SIZE - petH) / 2 + offsetY * SIZE * 0.01;
+          const px = (CW - petW) / 2 + offsetX * CW * 0.01;
+          const py = (CH - petH) / 2 + offsetY * CH * 0.01;
           ctx.globalAlpha = opacity;
           ctx.drawImage(petImg, px, py, petW, petH);
           ctx.globalAlpha = 1.0;
