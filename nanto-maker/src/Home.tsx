@@ -13,7 +13,7 @@ const tools = [
     sub: "写真をピースにして、ぐるっと並べて遊ぶジグソーパズル。",
     cta: "あそぶ",
     theme: "lavender",
-    thumb: "/thumbs/puzzle.svg",
+    thumb: "/thumbs/puzzle.jpg",
   },
   {
     id: "mogura",
@@ -23,7 +23,7 @@ const tools = [
     sub: "うちの子がぴょこっと出てくる、タップして遊ぶミニゲームです。",
     cta: "あそぶ",
     theme: "pink",
-    thumb: "/thumbs/mogura.svg",
+    thumb: "/thumbs/mogura.jpg",
   },
   {
     id: "kourin",
@@ -43,7 +43,7 @@ const tools = [
     sub: "耳をなぞると上から落ちてくる。ピタッと止めてうちの子を完成させる動画が作れます。",
     cta: "作ってみる",
     theme: "lavender",
-    thumb: "",
+    thumb: "/thumbs/pitadome.jpg",
     external: true,
   },
 ];
