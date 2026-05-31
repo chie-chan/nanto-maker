@@ -35,6 +35,17 @@ const tools = [
     theme: "pink",
     thumb: "/thumbs/kourin.jpg",
   },
+  {
+    id: "pitadome",
+    path: "/pet-drop-maker/",
+    label: "NEW",
+    title: "うちのこパラッと動画メーカー",
+    sub: "耳をなぞると上から落ちてくる。止めてうちの子を完成させる動画が作れます。",
+    cta: "作ってみる",
+    theme: "lavender",
+    thumb: "",
+    external: true,
+  },
 ];
 
 export default function Home({ isMobile }: Props) {
@@ -54,7 +65,7 @@ export default function Home({ isMobile }: Props) {
             key={tool.id}
             className={`tool-card ${tool.theme}`}
             type="button"
-            onClick={() => navigate(tool.path)}
+            onClick={() => (tool.external ? (window.location.href = tool.path) : navigate(tool.path))}
           >
             {tool.thumb && (
               <span className="tool-thumb" aria-hidden="true">

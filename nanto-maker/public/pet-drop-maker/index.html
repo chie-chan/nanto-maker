@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>うちの子パラッと動画メーカー</title>
+<style>
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN",sans-serif; color:#333; background:#faf7f4; -webkit-tap-highlight-color:transparent; }
+  header{ padding:14px 16px; text-align:center; }
+  header h1{ font-size:17px; margin:0; }
+  header p{ font-size:12px; color:#888; margin:4px 0 0; }
+  .wrap{ max-width:460px; margin:0 auto; padding:0 12px 50px; }
+  .status{ background:#fff; border:1px solid #eee; border-radius:10px; padding:10px 12px; font-size:12px; color:#555; margin:10px 0; min-height:20px; }
+  .status b{ color:#ff6f91; }
+  .panel{ position:relative; width:100%; background:#eee; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,.07); }
+  .panel canvas{ display:block; width:100%; height:auto; touch-action:none; }
+  .stage{ position:relative; width:100%; aspect-ratio:9/16; background:#000; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,.08); }
+  .stage canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .label{ font-size:12px; color:#888; margin:14px 0 6px; }
+  .btn{ width:100%; padding:12px; border:0; border-radius:10px; font-size:14px; font-weight:700; background:#ff6f91; color:#fff; cursor:pointer; margin-top:8px; }
+  .btn.ghost{ background:#fff; color:#333; border:1px solid #ddd; }
+  .btn:disabled{ opacity:.4; cursor:default; }
+  .row{ display:flex; gap:8px; }
+  .row .btn{ flex:1; }
+  input[type=file]{ display:none; }
+  .note{ font-size:11px; color:#aaa; line-height:1.6; margin-top:14px; }
+  a.dl{ display:none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🐾 うちの子パラッと動画メーカー</h1>
+  <p>耳を囲む → 上から落ちてピタッ！の動画に</p>
+</header>
+
+<div class="wrap">
+  <div class="status" id="status">準備中…（初回はAIモデルの読み込みに少し時間がかかります）</div>
+
+  <label>
+    <input type="file" id="file" accept="image/*" />
+    <button type="button" id="pick" class="btn" onclick="document.getElementById('file').click()" disabled>📷 写真をえらぶ</button>
+  </label>
+
+  <div class="label">① 落としたい所（耳など）を指で<b>ぐるっと囲む</b>（何個でもOK）</div>
+  <div class="panel"><canvas id="cv"></canvas></div>
+  <div class="row">
+    <button type="button" id="undo" class="btn ghost" disabled>↩ 1つ戻す</button>
+    <button type="button" id="reset" class="btn ghost" disabled>🗑 全部やり直す</button>
+  </div>
+
+  <div class="label">② プレビュー＆動画（9:16）</div>
+  <div class="stage"><canvas id="stage" width="720" height="1280"></canvas></div>
+  <div class="row">
+    <button type="button" id="play" class="btn" disabled>▶ プレビュー</button>
+    <button type="button" id="rec" class="btn" disabled>⬇ 動画をつくる＆保存</button>
+  </div>
+  <div class="status" id="status2"></div>
+  <a id="dl" class="dl">download</a>
+
+  <p class="note">
+    ※すべて端末内で処理。写真は外部に送られません＝無料・安心。<br>
+    ※初回だけAIモデルの読み込みに時間がかかります（2回目以降は速い）。<br>
+    ※保存形式は端末により mp4 / webm。インスタには縦型9:16でそのまま使えます。
+  </p>
+</div>
+
+<script type="module">
+import { SamModel, AutoProcessor, RawImage, env }
+  from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2';
+env.allowLocalModels=false;
+
+const $=id=>document.getElementById(id);
+const statusEl=$('status'), status2=$('status2');
+const setStatus=h=>statusEl.innerHTML=h;
+const setStatus2=h=>status2.innerHTML=h;
+const cv=$('cv'), ctx=cv.getContext('2d');
+const stage=$('stage'), sctx=stage.getContext('2d');
+const SW=stage.width, SH=stage.height;
+
+let model, processor;
+let rawImage=null, imageEmbeddings=null, baseBitmap=null;
+let IW=0, IH=0;
+let baseImageData=null;     // evolving "earless" base (native res)
+let baseCanvas=null;        // canvas mirror of baseImageData (for drawImage)
+let pieces=[];              // {canvas, hx, hy, w, h}  (home pos in native coords)
+let drawing=false, path=[];
+let tf=null;                // native->stage cover transform
+let animating=false;
+
+// ---- model ----
+(async()=>{
+  try{
+    setStatus('🔄 AIモデルを読み込み中…（初回のみ・お待ちください）');
+    const id='Xenova/slimsam-77-uniform';
+    model=await SamModel.from_pretrained(id,{dtype:'fp16'});
+    processor=await AutoProcessor.from_pretrained(id);
+    setStatus('✅ 準備OK！「写真をえらぶ」からどうぞ');
+    $('pick').disabled=false;
+  }catch(err){ console.error(err); setStatus('❌ モデル読み込み失敗：'+err.message+'<br>再読み込みしてみてください'); }
+})();
+
+// ---- upload ----
+$('file').addEventListener('change', async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  setStatus('🖼 画像を読み込み中…');
+  const url=URL.createObjectURL(f);
+  rawImage=await RawImage.read(url);
+  IW=rawImage.width; IH=rawImage.height;
+  cv.width=IW; cv.height=IH;
+  baseBitmap=await createImageBitmap(await (await fetch(url)).blob());
+  ctx.drawImage(baseBitmap,0,0,IW,IH);
+  baseImageData=ctx.getImageData(0,0,IW,IH);
+  baseCanvas=document.createElement('canvas'); baseCanvas.width=IW; baseCanvas.height=IH;
+  syncBaseCanvas();
+  pieces=[]; path=[];
+  // cover transform native->stage
+  const scale=Math.max(SW/IW, SH/IH);
+  tf={ scale, offX:(SW-IW*scale)/2, offY:(SH-IH*scale)/2 };
+  setStatus('🧠 画像を解析中…（数秒）');
+  const inputs=await processor(rawImage);
+  imageEmbeddings=await model.get_image_embeddings(inputs);
+  setStatus('✏️ 落としたい所（耳など）をぐるっと囲んでね');
+  refreshButtons(); redrawEditor(); renderStageStatic();
+});
+
+function syncBaseCanvas(){ baseCanvas.getContext('2d').putImageData(baseImageData,0,0); }
+function refreshButtons(){
+  const has=pieces.length>0;
+  $('undo').disabled=$('reset').disabled=!has;
+  $('play').disabled=$('rec').disabled=!has || animating;
+}
+
+// ---- editor draw ----
+function toImg(e){ const r=cv.getBoundingClientRect(); return { x:(e.clientX-r.left)/r.width*IW, y:(e.clientY-r.top)/r.height*IH }; }
+function redrawEditor(){
+  if(!baseImageData) return;
+  ctx.putImageData(baseImageData,0,0);
+  if(path.length>1){
+    ctx.save(); ctx.strokeStyle='rgba(255,111,145,.95)'; ctx.lineWidth=Math.max(3,IW/200);
+    ctx.lineJoin='round'; ctx.setLineDash([12,8]);
+    ctx.beginPath(); ctx.moveTo(path[0].x,path[0].y); for(const p of path) ctx.lineTo(p.x,p.y); ctx.stroke(); ctx.restore();
+  }
+}
+cv.addEventListener('pointerdown',e=>{ if(!imageEmbeddings||animating) return; drawing=true; path=[toImg(e)]; });
+cv.addEventListener('pointermove',e=>{ if(!drawing) return; path.push(toImg(e)); redrawEditor(); });
+cv.addEventListener('pointerup', async ()=>{ if(!drawing) return; drawing=false; if(path.length<3){ setStatus('もう少し大きく囲んでね'); return; } await addPiece(); });
+
+$('undo').onclick=()=>{ /* simple reset of last is complex (base already inpainted); do full rebuild */ undoLast(); };
+$('reset').onclick=()=>{ pieces=[]; baseImageData=ctx.getImageData ? null:null; resetAll(); };
+
+function resetAll(){
+  pieces=[];
+  ctx.drawImage(baseBitmap,0,0,IW,IH);
+  baseImageData=ctx.getImageData(0,0,IW,IH); syncBaseCanvas();
+  path=[]; refreshButtons(); redrawEditor(); renderStageStatic();
+  setStatus('やり直しOK。もう一度囲んでね');
+}
+function undoLast(){
+  if(!pieces.length) return;
+  pieces.pop();
+  // rebuild base from original by re-inpainting all remaining pieces' regions
+  ctx.drawImage(baseBitmap,0,0,IW,IH);
+  baseImageData=ctx.getImageData(0,0,IW,IH);
+  for(const pc of pieces){ inpaintRegionRect(pc.region); }
+  syncBaseCanvas(); refreshButtons(); redrawEditor(); renderStageStatic();
+  setStatus('1つ戻しました');
+}
+
+// ---- segment + cut + inpaint ----
+async function addPiece(){
+  setStatus('✂️ 切り抜き中…');
+  try{
+    let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9,cx=0,cy=0;
+    for(const p of path){ x1=Math.min(x1,p.x);y1=Math.min(y1,p.y);x2=Math.max(x2,p.x);y2=Math.max(y2,p.y);cx+=p.x;cy+=p.y; }
+    cx/=path.length; cy/=path.length;
+    x1=Math.max(0,Math.floor(x1)); y1=Math.max(0,Math.floor(y1)); x2=Math.min(IW-1,Math.ceil(x2)); y2=Math.min(IH-1,Math.ceil(y2));
+    const poly=path.slice();
+    const input_points=[[[cx,cy],[x1,y1],[x2,y2]]]; const input_labels=[[1,2,3]];
+    const segInputs=await processor(rawImage,{ input_points, input_labels });
+    const outputs=await model({ ...segInputs, ...imageEmbeddings });
+    const masks=await processor.post_process_masks(outputs.pred_masks, segInputs.original_sizes, segInputs.reshaped_input_sizes);
+    const sc=outputs.iou_scores.data; let best=0; for(let i=1;i<sc.length;i++) if(sc[i]>sc[best]) best=i;
+    const m=masks[0]; const H=m.dims.at(-2), Wd=m.dims.at(-1); const data=m.data; const off=best*H*Wd;
+
+    const region=new Uint8Array(IW*IH); let minX=IW,minY=IH,maxX=0,maxY=0,any=false;
+    for(let yy=y1;yy<=y2;yy++) for(let xx=x1;xx<=x2;xx++){
+      const mi=off+(Math.min(yy,H-1)*Wd+Math.min(xx,Wd-1));
+      if(data[mi] && pointInPoly(poly,xx,yy)){ region[yy*IW+xx]=1; any=true; if(xx<minX)minX=xx;if(yy<minY)minY=yy;if(xx>maxX)maxX=xx;if(yy>maxY)maxY=yy; }
+    }
+    if(!any){ setStatus('うまく抜けませんでした。囲み直してね'); path=[]; redrawEditor(); return; }
+
+    const piece=makeCutout(region,minX,minY,maxX,maxY); // {canvas,hx,hy,w,h}
+    piece.region={region,minX,minY,maxX,maxY};
+    inpaintRegionRect(piece.region);                    // remove from base
+    syncBaseCanvas();
+    pieces.push(piece);
+    path=[]; refreshButtons(); redrawEditor(); renderStageStatic();
+    setStatus('✅ パーツ追加（'+pieces.length+'個）。続けて囲む or ▶プレビュー');
+  }catch(err){ console.error(err); setStatus('❌ 失敗：'+err.message); path=[]; redrawEditor(); }
+}
+
+// feathered cutout from ORIGINAL image, cropped to bbox
+function makeCutout(region,minX,minY,maxX,maxY){
+  const a=new Float32Array(IW*IH);
+  for(let y=minY;y<=maxY;y++) for(let x=minX;x<=maxX;x++) if(region[y*IW+x]) a[y*IW+x]=255;
+  const pad=3, bx1=Math.max(0,minX-pad),by1=Math.max(0,minY-pad),bx2=Math.min(IW-1,maxX+pad),by2=Math.min(IH-1,maxY+pad);
+  erodeAlpha(a,bx1,by1,bx2,by2); boxBlurAlpha(a,bx1,by1,bx2,by2,2);
+  const tmp=document.createElement('canvas'); tmp.width=IW; tmp.height=IH; tmp.getContext('2d').drawImage(baseBitmap,0,0,IW,IH);
+  const clean=tmp.getContext('2d').getImageData(0,0,IW,IH);
+  const cw=maxX-minX+1, ch=maxY-minY+1;
+  const c=document.createElement('canvas'); c.width=cw; c.height=ch; const cc=c.getContext('2d'); const out=cc.createImageData(cw,ch);
+  for(let y=minY;y<=maxY;y++) for(let x=minX;x<=maxX;x++){ const av=a[y*IW+x]; const di=(y*IW+x)*4; const oi=((y-minY)*cw+(x-minX))*4;
+    if(av>0){ out.data[oi]=clean.data[di];out.data[oi+1]=clean.data[di+1];out.data[oi+2]=clean.data[di+2];out.data[oi+3]=Math.round(av);} else out.data[oi+3]=0; }
+  cc.putImageData(out,0,0);
+  return { canvas:c, hx:minX, hy:minY, w:cw, h:ch };
+}
+
+// inpaint a region's bbox in baseImageData (diffusion fill)
+function inpaintRegionRect(reg){
+  const {region,minX,minY,maxX,maxY}=reg;
+  const fill=dilate(region,minX,minY,maxX,maxY,3);
+  const m=8, bx1=Math.max(0,minX-m),by1=Math.max(0,minY-m),bx2=Math.min(IW-1,maxX+m),by2=Math.min(IH-1,maxY+m);
+  const src=baseImageData.data; const bw=bx2-bx1+1;
+  const buf=new Float32Array(bw*(by2-by1+1)*3); const at=(x,y)=>((y-by1)*bw+(x-bx1))*3;
+  let sr=0,sg=0,sb=0,scn=0;
+  for(let y=by1;y<=by2;y++) for(let x=bx1;x<=bx2;x++){ const di=(y*IW+x)*4,k=at(x,y); buf[k]=src[di];buf[k+1]=src[di+1];buf[k+2]=src[di+2]; if(!fill[y*IW+x]){sr+=src[di];sg+=src[di+1];sb+=src[di+2];scn++;} }
+  if(scn){ sr/=scn;sg/=scn;sb/=scn; for(let y=by1;y<=by2;y++) for(let x=bx1;x<=bx2;x++) if(fill[y*IW+x]){const k=at(x,y);buf[k]=sr;buf[k+1]=sg;buf[k+2]=sb;} }
+  const hw=maxX-minX+1, hh=maxY-minY+1; const passes=Math.min(500,Math.max(80,Math.round(Math.max(hw,hh)*1.5)));
+  for(let p=0;p<passes;p++) for(let y=by1;y<=by2;y++) for(let x=bx1;x<=bx2;x++){
+    if(!fill[y*IW+x]) continue; let r=0,g=0,b=0,c=0;
+    if(x>bx1){const k=at(x-1,y);r+=buf[k];g+=buf[k+1];b+=buf[k+2];c++;}
+    if(x<bx2){const k=at(x+1,y);r+=buf[k];g+=buf[k+1];b+=buf[k+2];c++;}
+    if(y>by1){const k=at(x,y-1);r+=buf[k];g+=buf[k+1];b+=buf[k+2];c++;}
+    if(y<by2){const k=at(x,y+1);r+=buf[k];g+=buf[k+1];b+=buf[k+2];c++;}
+    if(c){const k=at(x,y);buf[k]=r/c;buf[k+1]=g/c;buf[k+2]=b/c;}
+  }
+  for(let y=by1;y<=by2;y++) for(let x=bx1;x<=bx2;x++) if(fill[y*IW+x]){ const di=(y*IW+x)*4,k=at(x,y); src[di]=buf[k];src[di+1]=buf[k+1];src[di+2]=buf[k+2];src[di+3]=255; }
+}
+
+// ---- stage render / animation ----
+function drawBaseToStage(){
+  sctx.clearRect(0,0,SW,SH);
+  sctx.drawImage(baseCanvas, 0,0,IW,IH, tf.offX,tf.offY, IW*tf.scale, IH*tf.scale);
+}
+// draw piece at an absolute top-left Y (stage coords), keeping its home X column
+function drawPieceRaw(pc, topY, alpha){
+  const dx=pc.hx*tf.scale+tf.offX;
+  const w=pc.w*tf.scale, h=pc.h*tf.scale;
+  sctx.save(); sctx.globalAlpha=alpha; sctx.drawImage(pc.canvas, dx, topY, w, h); sctx.restore();
+}
+function homeY(pc){ return pc.hy*tf.scale+tf.offY; }
+function aboveY(pc){ return -(pc.h*tf.scale)-40; }   // just above top edge
+function belowY(){ return SH+40; }                    // just below bottom edge
+
+function renderStageStatic(){
+  if(!baseCanvas){ return; }
+  drawBaseToStage();
+  for(const pc of pieces) drawPieceRaw(pc, homeY(pc), 1); // assembled preview
+}
+function easeOutBounce(t){const n=7.5625,d=2.75;if(t<1/d)return n*t*t;if(t<2/d){t-=1.5/d;return n*t*t+.75;}if(t<2.5/d){t-=2.25/d;return n*t*t+.9375;}t-=2.625/d;return n*t*t+.984375;}
+const easeInQuad=t=>t*t; // accelerating fall (gravity feel)
+
+// LOOPS: ear rains top→through→bottom this many times, then lands & freezes
+const LOOPS=5;            // 落下のくり返し回数（多いほど止めるチャンスが増える）
+const LAND_AT_END=false;  // ピタ止め用：自動で収めない（視聴者が止めて完成させる）
+
+// All pieces share ONE timeline and pass through their home position at the SAME instant
+// (p === P_HIT) every loop — so a single well-timed pause completes the whole picture.
+const P_HIT=0.5;          // fraction of each loop where every piece is exactly at home
+function runAnimation(onDone){
+  animating=true; refreshButtons();
+  const fallDur=1100, hold=1600;   // slower fall = easier to "catch"
+  const loopPhase=LOOPS*fallDur;
+  const t0=performance.now();
+  function frame(now){
+    const t=now-t0; drawBaseToStage();
+    const inLoops = t<loopPhase;
+    const p = inLoops ? (t%fallDur)/fallDur : 1;
+    pieces.forEach((pc)=>{
+      const aY=aboveY(pc), bY=belowY(), hY=homeY(pc);
+      let topY;
+      if(inLoops){
+        // piecewise: above→home in [0,P_HIT], home→below in [P_HIT,1]
+        topY = (p<P_HIT) ? aY+(hY-aY)*(p/P_HIT)
+                         : hY+(bY-hY)*((p-P_HIT)/(1-P_HIT));
+      } else {
+        topY = hY; // reveal: settle complete at the end
+      }
+      drawPieceRaw(pc, topY, 1);
+    });
+    if(t<loopPhase){ requestAnimationFrame(frame); }
+    else { animating=false; refreshButtons(); renderStageStatic(); if(onDone) onDone(); } // 完成見せなし：5回で終了
+  }
+  requestAnimationFrame(frame);
+}
+
+$('play').onclick=()=>{ if(animating||!pieces.length) return; setStatus2('▶ 再生中…'); runAnimation(()=>setStatus2('✓ 再生おわり')); };
+
+$('rec').onclick=()=>{
+  if(animating||!pieces.length) return;
+  if(!window.MediaRecorder){ setStatus2('この端末は録画に未対応です（プレビューは見られます）'); return; }
+  const stream=stage.captureStream(30);
+  let mime='video/mp4'; if(!MediaRecorder.isTypeSupported(mime)) mime='video/webm;codecs=vp9'; if(!MediaRecorder.isTypeSupported(mime)) mime='video/webm';
+  const rec=new MediaRecorder(stream,{ mimeType:mime, videoBitsPerSecond:8_000_000 }); const chunks=[];
+  rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
+  rec.onstop=()=>{ const blob=new Blob(chunks,{type:mime}); const url=URL.createObjectURL(blob); const ext=mime.includes('mp4')?'mp4':'webm';
+    const dl=$('dl'); dl.href=url; dl.download='uchinoko_'+Date.now()+'.'+ext; dl.style.display='inline'; dl.click(); setStatus2('✓ 保存しました（'+ext+'）'); };
+  setStatus2('⬇ 動画を作成中…（最後まで再生されます）');
+  rec.start(); runAnimation(()=>setTimeout(()=>rec.stop(),250));
+};
+
+// ---- helpers ----
+function dilate(region,minX,minY,maxX,maxY,r){ let cur=region;
+  for(let it=0;it<r;it++){ const nx=cur.slice();
+    for(let y=Math.max(1,minY-r);y<=Math.min(IH-2,maxY+r);y++) for(let x=Math.max(1,minX-r);x<=Math.min(IW-2,maxX+r);x++)
+      if(cur[y*IW+x]||cur[y*IW+x-1]||cur[y*IW+x+1]||cur[(y-1)*IW+x]||cur[(y+1)*IW+x]) nx[y*IW+x]=1;
+    cur=nx; } return cur; }
+function erodeAlpha(a,x1,y1,x2,y2){ const s=a.slice(); for(let y=y1;y<=y2;y++)for(let x=x1;x<=x2;x++){const i=y*IW+x;if(s[i]===0)continue;if(s[i-1]===0||s[i+1]===0||s[i-IW]===0||s[i+IW]===0)a[i]=0;} }
+function boxBlurAlpha(a,x1,y1,x2,y2,n){ for(let p=0;p<n;p++){const s=a.slice();for(let y=y1;y<=y2;y++)for(let x=x1;x<=x2;x++){let su=0,c=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const yy=y+dy,xx=x+dx;if(yy<0||xx<0||yy>=IH||xx>=IW)continue;su+=s[yy*IW+xx];c++;}a[y*IW+x]=su/c;}} }
+function pointInPoly(poly,x,y){ let inside=false; for(let i=0,j=poly.length-1;i<poly.length;j=i++){const xi=poly[i].x,yi=poly[i].y,xj=poly[j].x,yj=poly[j].y;const hit=((yi>y)!=(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi);if(hit)inside=!inside;} return inside; }
+</script>
+</body>
+</html>
