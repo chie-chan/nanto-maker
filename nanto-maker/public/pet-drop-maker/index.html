@@ -106,9 +106,16 @@ $('file').addEventListener('change', async e=>{
   setStatus('🖼 画像を読み込み中…');
   const url=URL.createObjectURL(f);
   rawImage=await RawImage.read(url);
+  // 📱 携帯のメモリ落ち対策：長辺を MAX_DIM に縮小してから処理する
+  const MAX_DIM=1280;
+  const longSide=Math.max(rawImage.width, rawImage.height);
+  if(longSide>MAX_DIM){
+    const s=MAX_DIM/longSide;
+    rawImage=await rawImage.resize(Math.round(rawImage.width*s), Math.round(rawImage.height*s));
+  }
   IW=rawImage.width; IH=rawImage.height;
   cv.width=IW; cv.height=IH;
-  baseBitmap=await createImageBitmap(await (await fetch(url)).blob());
+  baseBitmap=rawImage.toCanvas();   // 縮小済み画像を描画ソースに
   ctx.drawImage(baseBitmap,0,0,IW,IH);
   baseImageData=ctx.getImageData(0,0,IW,IH);
   baseCanvas=document.createElement('canvas'); baseCanvas.width=IW; baseCanvas.height=IH;
