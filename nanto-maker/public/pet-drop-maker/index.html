@@ -35,7 +35,7 @@
 </header>
 
 <div class="wrap">
-  <div class="status" id="status">準備中…（初回はAIモデルの読み込みに少し時間がかかります）</div>
+  <div class="status" id="status">準備中…</div>
 
   <label>
     <input type="file" id="file" accept="image/*" />
@@ -60,17 +60,13 @@
 
   <p class="note">
     ※すべて端末内で処理。写真は外部に送られません＝無料・安心。<br>
-    ※初回だけAIモデルの読み込みに時間がかかります（2回目以降は速い）。<br>
+    ※耳のフチに沿ってなぞると、その形のまま切り抜けます（なぞりは大きめが◎）。<br>
     ※保存形式は端末により mp4 / webm。インスタには縦型9:16でそのまま使えます。
   </p>
 </div>
 
 <script type="module">
-import { SamModel, AutoProcessor, RawImage, env }
-  from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2';
-env.allowLocalModels=false;
-// 📱 iOS Safari のメモリ制限対策：スレッドを絞ってメモリ消費を抑える
-try { env.backends.onnx.wasm.numThreads = 1; } catch(_) {}
+// AIモデルは使わず、なぞった範囲をそのまま切り抜く方式（iOSでも軽快・端末内完結・落ちない）
 
 const $=id=>document.getElementById(id);
 const statusEl=$('status'), status2=$('status2');
@@ -80,8 +76,7 @@ const cv=$('cv'), ctx=cv.getContext('2d');
 const stage=$('stage'), sctx=stage.getContext('2d');
 const SW=stage.width, SH=stage.height;
 
-let model, processor;
-let rawImage=null, imageEmbeddings=null, baseBitmap=null;
+let baseBitmap=null;
 let IW=0, IH=0;
 let baseImageData=null;     // evolving "earless" base (native res)
 let baseCanvas=null;        // canvas mirror of baseImageData (for drawImage)
@@ -91,46 +86,37 @@ let tf=null;                // native->stage cover transform
 let animating=false;
 
 // ---- model ----
-(async()=>{
-  try{
-    setStatus('🔄 AIモデルを読み込み中…（初回のみ・お待ちください）');
-    const id='Xenova/slimsam-77-uniform';
-    model=await SamModel.from_pretrained(id,{dtype:'q8'}); // 8bit量子化＝iOSでもメモリ落ちしにくい
-    processor=await AutoProcessor.from_pretrained(id);
-    setStatus('✅ 準備OK！「写真をえらぶ」からどうぞ');
-    $('pick').disabled=false;
-  }catch(err){ console.error(err); setStatus('❌ モデル読み込み失敗：'+err.message+'<br>再読み込みしてみてください'); }
-})();
+$('pick').disabled=false;
+setStatus('✅ 「写真をえらぶ」からどうぞ');
 
 // ---- upload ----
-$('file').addEventListener('change', async e=>{
+$('file').addEventListener('change', e=>{
   const f=e.target.files[0]; if(!f) return;
   setStatus('🖼 画像を読み込み中…');
   const url=URL.createObjectURL(f);
-  rawImage=await RawImage.read(url);
-  // 📱 携帯のメモリ落ち対策：長辺を MAX_DIM に縮小してから処理する
-  const MAX_DIM=1024;
-  const longSide=Math.max(rawImage.width, rawImage.height);
-  if(longSide>MAX_DIM){
-    const s=MAX_DIM/longSide;
-    rawImage=await rawImage.resize(Math.round(rawImage.width*s), Math.round(rawImage.height*s));
-  }
-  IW=rawImage.width; IH=rawImage.height;
-  cv.width=IW; cv.height=IH;
-  baseBitmap=rawImage.toCanvas();   // 縮小済み画像を描画ソースに
-  ctx.drawImage(baseBitmap,0,0,IW,IH);
-  baseImageData=ctx.getImageData(0,0,IW,IH);
-  baseCanvas=document.createElement('canvas'); baseCanvas.width=IW; baseCanvas.height=IH;
-  syncBaseCanvas();
-  pieces=[]; path=[];
-  // cover transform native->stage
-  const scale=Math.max(SW/IW, SH/IH);
-  tf={ scale, offX:(SW-IW*scale)/2, offY:(SH-IH*scale)/2 };
-  setStatus('🧠 画像を解析中…（数秒）');
-  const inputs=await processor(rawImage);
-  imageEmbeddings=await model.get_image_embeddings(inputs);
-  setStatus('✏️ 落としたい所（耳など）をぐるっと囲んでね');
-  refreshButtons(); redrawEditor(); renderStageStatic();
+  const im=new Image();
+  im.onload=()=>{
+    // 📱 メモリ対策：長辺を MAX_DIM に縮小して読み込む
+    const MAX_DIM=1024;
+    const longSide=Math.max(im.naturalWidth, im.naturalHeight);
+    const s=longSide>MAX_DIM ? MAX_DIM/longSide : 1;
+    IW=Math.round(im.naturalWidth*s); IH=Math.round(im.naturalHeight*s);
+    cv.width=IW; cv.height=IH;
+    ctx.drawImage(im,0,0,IW,IH);
+    baseBitmap=document.createElement('canvas'); baseBitmap.width=IW; baseBitmap.height=IH;
+    baseBitmap.getContext('2d').drawImage(im,0,0,IW,IH);
+    baseImageData=ctx.getImageData(0,0,IW,IH);
+    baseCanvas=document.createElement('canvas'); baseCanvas.width=IW; baseCanvas.height=IH;
+    syncBaseCanvas();
+    pieces=[]; path=[];
+    const scale=Math.max(SW/IW, SH/IH);
+    tf={ scale, offX:(SW-IW*scale)/2, offY:(SH-IH*scale)/2 };
+    URL.revokeObjectURL(url);
+    setStatus('✏️ 落としたい所（耳など）を、フチに沿ってぐるっと囲んでね');
+    refreshButtons(); redrawEditor(); renderStageStatic();
+  };
+  im.onerror=()=>setStatus('❌ 画像を読み込めませんでした');
+  im.src=url;
 });
 
 function syncBaseCanvas(){ baseCanvas.getContext('2d').putImageData(baseImageData,0,0); }
@@ -151,7 +137,7 @@ function redrawEditor(){
     ctx.beginPath(); ctx.moveTo(path[0].x,path[0].y); for(const p of path) ctx.lineTo(p.x,p.y); ctx.stroke(); ctx.restore();
   }
 }
-cv.addEventListener('pointerdown',e=>{ if(!imageEmbeddings||animating) return; drawing=true; path=[toImg(e)]; });
+cv.addEventListener('pointerdown',e=>{ if(!baseImageData||animating) return; drawing=true; path=[toImg(e)]; });
 cv.addEventListener('pointermove',e=>{ if(!drawing) return; path.push(toImg(e)); redrawEditor(); });
 cv.addEventListener('pointerup', async ()=>{ if(!drawing) return; drawing=false; if(path.length<3){ setStatus('もう少し大きく囲んでね'); return; } await addPiece(); });
 
@@ -177,27 +163,18 @@ function undoLast(){
 }
 
 // ---- segment + cut + inpaint ----
-async function addPiece(){
-  setStatus('✂️ 切り抜き中…');
+function addPiece(){
   try{
-    let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9,cx=0,cy=0;
-    for(const p of path){ x1=Math.min(x1,p.x);y1=Math.min(y1,p.y);x2=Math.max(x2,p.x);y2=Math.max(y2,p.y);cx+=p.x;cy+=p.y; }
-    cx/=path.length; cy/=path.length;
+    let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;
+    for(const p of path){ x1=Math.min(x1,p.x);y1=Math.min(y1,p.y);x2=Math.max(x2,p.x);y2=Math.max(y2,p.y); }
     x1=Math.max(0,Math.floor(x1)); y1=Math.max(0,Math.floor(y1)); x2=Math.min(IW-1,Math.ceil(x2)); y2=Math.min(IH-1,Math.ceil(y2));
     const poly=path.slice();
-    const input_points=[[[cx,cy],[x1,y1],[x2,y2]]]; const input_labels=[[1,2,3]];
-    const segInputs=await processor(rawImage,{ input_points, input_labels });
-    const outputs=await model({ ...segInputs, ...imageEmbeddings });
-    const masks=await processor.post_process_masks(outputs.pred_masks, segInputs.original_sizes, segInputs.reshaped_input_sizes);
-    const sc=outputs.iou_scores.data; let best=0; for(let i=1;i<sc.length;i++) if(sc[i]>sc[best]) best=i;
-    const m=masks[0]; const H=m.dims.at(-2), Wd=m.dims.at(-1); const data=m.data; const off=best*H*Wd;
-
+    // なぞった閉じた線の内側＝切り抜く範囲（AIなし）
     const region=new Uint8Array(IW*IH); let minX=IW,minY=IH,maxX=0,maxY=0,any=false;
     for(let yy=y1;yy<=y2;yy++) for(let xx=x1;xx<=x2;xx++){
-      const mi=off+(Math.min(yy,H-1)*Wd+Math.min(xx,Wd-1));
-      if(data[mi] && pointInPoly(poly,xx,yy)){ region[yy*IW+xx]=1; any=true; if(xx<minX)minX=xx;if(yy<minY)minY=yy;if(xx>maxX)maxX=xx;if(yy>maxY)maxY=yy; }
+      if(pointInPoly(poly,xx,yy)){ region[yy*IW+xx]=1; any=true; if(xx<minX)minX=xx;if(yy<minY)minY=yy;if(xx>maxX)maxX=xx;if(yy>maxY)maxY=yy; }
     }
-    if(!any){ setStatus('うまく抜けませんでした。囲み直してね'); path=[]; redrawEditor(); return; }
+    if(!any){ setStatus('もう少し大きく囲んでね'); path=[]; redrawEditor(); return; }
 
     const piece=makeCutout(region,minX,minY,maxX,maxY); // {canvas,hx,hy,w,h}
     piece.region={region,minX,minY,maxX,maxY};
