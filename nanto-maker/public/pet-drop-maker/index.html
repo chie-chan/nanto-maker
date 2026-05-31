@@ -69,6 +69,8 @@
 import { SamModel, AutoProcessor, RawImage, env }
   from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2';
 env.allowLocalModels=false;
+// 📱 iOS Safari のメモリ制限対策：スレッドを絞ってメモリ消費を抑える
+try { env.backends.onnx.wasm.numThreads = 1; } catch(_) {}
 
 const $=id=>document.getElementById(id);
 const statusEl=$('status'), status2=$('status2');
@@ -93,7 +95,7 @@ let animating=false;
   try{
     setStatus('🔄 AIモデルを読み込み中…（初回のみ・お待ちください）');
     const id='Xenova/slimsam-77-uniform';
-    model=await SamModel.from_pretrained(id,{dtype:'fp16'});
+    model=await SamModel.from_pretrained(id,{dtype:'q8'}); // 8bit量子化＝iOSでもメモリ落ちしにくい
     processor=await AutoProcessor.from_pretrained(id);
     setStatus('✅ 準備OK！「写真をえらぶ」からどうぞ');
     $('pick').disabled=false;
@@ -107,7 +109,7 @@ $('file').addEventListener('change', async e=>{
   const url=URL.createObjectURL(f);
   rawImage=await RawImage.read(url);
   // 📱 携帯のメモリ落ち対策：長辺を MAX_DIM に縮小してから処理する
-  const MAX_DIM=1280;
+  const MAX_DIM=1024;
   const longSide=Math.max(rawImage.width, rawImage.height);
   if(longSide>MAX_DIM){
     const s=MAX_DIM/longSide;
