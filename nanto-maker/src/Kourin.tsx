@@ -371,7 +371,7 @@ export default function Kourin({ isMobile, dark, text, bg }: Props) {
     <main className="maker-page kourin-page">
       <section className="maker-mini-hero">
         <p className="eyebrow">KOURIN MAKER</p>
-        <h1>降臨メーカー</h1>
+        <h1>旅先うちのこ降臨メーカー</h1>
         <p>風景写真に、背景を消したうちの子を重ねて“降臨”させる合成メーカー。<br />①背景を選ぶ → ②うちの子を選ぶ → ③配置して保存、の3ステップ。</p>
       </section>
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: isMobile ? 8 : 16 }}>
