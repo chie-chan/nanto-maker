@@ -27,6 +27,7 @@ const navItems = [
   { path: "/puzzle", label: "パズル" },
   { path: "/mogura", label: "もぐら" },
   { path: "/kourin", label: "降臨" },
+  { path: "/pet-drop-maker/", label: "ピタ止め", external: true },
 ];
 
 export default function App() {
@@ -50,9 +51,13 @@ export default function App() {
 
         <nav className="header-nav" aria-label="メインメニュー">
           {navItems.map((item) => (
-            <NavLink key={item.path} to={item.path} end={item.path === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
-              {item.label}
-            </NavLink>
+            item.external ? (
+              <a key={item.path} href={item.path}>{item.label}</a>
+            ) : (
+              <NavLink key={item.path} to={item.path} end={item.path === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
+                {item.label}
+              </NavLink>
+            )
           ))}
         </nav>
 

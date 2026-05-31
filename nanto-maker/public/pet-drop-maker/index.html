@@ -13,6 +13,14 @@
       radial-gradient(circle at 92% 10%, rgba(243,229,245,0.82), transparent 30%),
       #fdfbf7;
     -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent; }
+  .app-header{ position:sticky; top:0; z-index:30; display:flex; align-items:center; gap:14px; min-height:60px; padding:8px clamp(12px,4vw,28px); background:linear-gradient(135deg,#f9a8c9 0%,#c8b4e8 100%); box-shadow:0 2px 14px rgba(180,120,200,.18); }
+  .app-header .brand{ display:inline-flex; align-items:center; gap:9px; color:#fff; text-decoration:none; flex:0 0 auto; }
+  .app-header .brand img{ width:34px; height:34px; object-fit:contain; }
+  .app-header .brand strong{ font-size:15px; line-height:1.1; white-space:nowrap; }
+  .app-header nav{ display:flex; gap:6px; margin-left:auto; overflow-x:auto; scrollbar-width:none; }
+  .app-header nav::-webkit-scrollbar{ display:none; }
+  .app-header nav a{ display:inline-flex; align-items:center; min-height:32px; padding:6px 11px; border-radius:999px; color:#fff; text-decoration:none; font-size:12px; font-weight:800; white-space:nowrap; background:rgba(255,255,255,.16); }
+  .app-header nav a.active{ background:#fff; color:#8b4b78; }
   .wrap{ max-width:460px; margin:0 auto; padding:0 14px 50px; }
   header{ text-align:center; padding:18px 14px 4px; }
   .eyebrow{ margin:0 0 6px; color:#a87ce8; font-size:12px; font-weight:900; }
@@ -40,6 +48,18 @@
 </style>
 </head>
 <body>
+<header class="app-header">
+  <a class="brand" href="/"><img src="/aiko-logo.png" alt="aiko animal" /><strong>あいこのあそびば</strong></a>
+  <nav>
+    <a href="/">あそびば</a>
+    <a href="/puzzle">パズル</a>
+    <a href="/mogura">もぐら</a>
+    <a href="/kourin">降臨</a>
+    <a class="active" href="/pet-drop-maker/">ピタ止め</a>
+    <a href="https://aikoanimal.base.shop/" target="_blank" rel="noopener">SHOP</a>
+  </nav>
+</header>
+
 <header>
   <p class="eyebrow">PITA-DOME MAKER</p>
   <h1>うちのこ ピタ止めメーカー</h1>
