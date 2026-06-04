@@ -494,7 +494,17 @@ function PrizeFanfare({ isHit }: { isHit: boolean }) {
       <div className="fanfare-rays" />
       <div className="fanfare-message">
         <span>{isHit ? "あいこイラスト引換券" : "気になる結果は..."}</span>
-        <strong>{isHit ? "大当たり!" : "結果発表"}</strong>
+        <strong className={isHit ? undefined : "fanfare-result-title"}>
+          {isHit ? (
+            "大当たり!"
+          ) : (
+            <>
+              結果
+              <br />
+              発表
+            </>
+          )}
+        </strong>
       </div>
       <div className="fanfare-confetti">
         {fanfarePieces.map((piece, index) => (
