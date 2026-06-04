@@ -68,6 +68,12 @@ const knownPlaces: KnownPlace[] = [
   { name: "三重", aliases: ["三重県", "津"], latitude: 34.7303, longitude: 136.5086 },
   { name: "滋賀", aliases: ["滋賀県", "大津"], latitude: 35.0044, longitude: 135.8683 },
   { name: "京都", aliases: ["京都府"], latitude: 35.0214, longitude: 135.7556 },
+  {
+    name: "京都府亀岡市",
+    aliases: ["亀岡", "亀岡市", "京都亀岡", "京都 亀岡", "京都府亀岡", "京都府 亀岡", "京都府亀岡市", "Kameoka"],
+    latitude: 35.0,
+    longitude: 135.58333,
+  },
   { name: "大阪", aliases: ["大阪府"], latitude: 34.6864, longitude: 135.52 },
   { name: "兵庫", aliases: ["兵庫県", "神戸"], latitude: 34.6914, longitude: 135.1831 },
   { name: "奈良", aliases: ["奈良県"], latitude: 34.6853, longitude: 135.8328 },
@@ -243,13 +249,64 @@ function normalizePlaceName(value: string) {
   return value.trim().replace(/\s+/g, "").toLowerCase();
 }
 
+function getKnownPlaceKeys(place: KnownPlace) {
+  return [place.name, ...place.aliases].map((alias) => normalizePlaceName(alias));
+}
+
 function findKnownPlace(value: string) {
   const normalized = normalizePlaceName(value);
-  return knownPlaces.find((place) =>
-    [place.name, ...place.aliases].some((alias) => {
-      const normalizedAlias = normalizePlaceName(alias);
-      return normalized === normalizedAlias || normalized.includes(normalizedAlias);
+  const exactMatch = knownPlaces.find((place) => getKnownPlaceKeys(place).some((key) => normalized === key));
+
+  if (exactMatch) return exactMatch;
+
+  const partialMatches = knownPlaces
+    .map((place) => ({
+      place,
+      keyLength: Math.max(...getKnownPlaceKeys(place).filter((key) => normalized.includes(key)).map((key) => key.length), 0),
+    }))
+    .filter(({ keyLength }) => keyLength > 0)
+    .sort((a, b) => b.keyLength - a.keyLength);
+
+  return partialMatches[0]?.place;
+}
+
+function pickBestGeoPlace(locationName: string, results: Array<Record<string, unknown>> = []) {
+  const normalized = normalizePlaceName(locationName);
+  const japaneseResults = results.filter((place) => place.country_code === "JP");
+  const candidates = japaneseResults.length > 0 ? japaneseResults : results;
+
+  return candidates
+    .map((place) => {
+      const name = normalizePlaceName(String(place.name ?? ""));
+      const admin1 = normalizePlaceName(String(place.admin1 ?? ""));
+      const admin2 = normalizePlaceName(String(place.admin2 ?? ""));
+      let score = 0;
+
+      if (normalized === name) score += 40;
+      if (normalized === `${admin1}${name}` || normalized === `${admin1}${admin2}`) score += 80;
+      if (admin1 && normalized.includes(admin1)) score += 30;
+      if (admin2 && normalized.includes(admin2)) score += 30;
+      if (typeof place.population === "number") score += Math.min(Number(place.population) / 10000, 20);
+      if (place.feature_code === "PPLA2" || place.feature_code === "PPLA3") score += 8;
+
+      return { place, score };
     })
+    .sort((a, b) => b.score - a.score)[0]?.place;
+}
+
+function formatGeoPlaceName(place: Record<string, unknown>) {
+  return [place.name, place.admin1]
+    .filter((value) => typeof value === "string" && value.length > 0)
+    .join(" / ");
+}
+
+function isGeoPlace(place: unknown): place is { latitude: number; longitude: number; name: string; admin1?: string } {
+  return (
+    typeof place === "object" &&
+    place !== null &&
+    typeof (place as { latitude?: unknown }).latitude === "number" &&
+    typeof (place as { longitude?: unknown }).longitude === "number" &&
+    typeof (place as { name?: unknown }).name === "string"
   );
 }
 
@@ -274,11 +331,14 @@ async function fetchWeatherSummary(locationName: string): Promise<WeatherSummary
     : null;
 
   if (!place) {
-    const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationName)}&count=1&language=ja&format=json`;
+    const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationName)}&count=10&language=ja&format=json`;
     const geoResponse = await fetch(geoUrl);
     if (!geoResponse.ok) throw new Error("地域が見つかりませんでした。");
     const geoData = await geoResponse.json();
-    place = geoData.results?.[0] ?? null;
+    const geoPlace = pickBestGeoPlace(locationName, geoData.results ?? []);
+    place = isGeoPlace(geoPlace)
+      ? { name: formatGeoPlaceName(geoPlace), admin1: "", latitude: geoPlace.latitude, longitude: geoPlace.longitude }
+      : null;
     if (!place) throw new Error("地域が見つかりませんでした。");
   }
 
