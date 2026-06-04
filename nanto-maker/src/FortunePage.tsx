@@ -565,7 +565,6 @@ export default function FortunePage() {
               <span>今日の運をくるっと試して、</span>
               <span>大当たりをねらってみてね。</span>
             </p>
-            <img className="fortune-hero-aiko" src="/assets/fortune/aiko-portrait-front.png" alt="" aria-hidden="true" />
           </div>
         </div>
 

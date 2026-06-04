@@ -37,26 +37,13 @@
   padding: clamp(30px, 5vw, 56px);
   overflow: hidden;
   background:
-    linear-gradient(135deg, rgba(255, 246, 251, 0.98), rgba(248, 242, 255, 0.94) 58%, rgba(240, 255, 250, 0.96));
+    linear-gradient(135deg, rgba(255, 245, 251, 0.94), rgba(246, 241, 255, 0.9) 58%, rgba(239, 255, 249, 0.92)),
+    url("/assets/style-samples/style-themepark.png") center / cover;
 }
 
-.fortune-copy > :not(.fortune-hero-aiko) {
+.fortune-copy > * {
   position: relative;
   z-index: 2;
-}
-
-.fortune-hero-aiko {
-  position: absolute;
-  z-index: 1;
-  right: clamp(18px, 7vw, 96px);
-  bottom: -24px;
-  width: min(30vw, 260px);
-  max-height: 92%;
-  object-fit: contain;
-  opacity: 0.34;
-  mix-blend-mode: multiply;
-  filter: drop-shadow(0 20px 34px rgba(169, 84, 142, 0.18));
-  pointer-events: none;
 }
 
 .fortune-kicker,
@@ -972,13 +959,6 @@
     max-width: min(280px, 74%);
     font-size: 13px;
     line-height: 1.85;
-  }
-
-  .fortune-hero-aiko {
-    right: 10px;
-    bottom: -16px;
-    width: min(36vw, 158px);
-    opacity: 0.32;
   }
 
   .fortune-workbench {
