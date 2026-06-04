@@ -15,14 +15,10 @@
 }
 
 .fortune-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 330px);
-  gap: 18px;
-  align-items: stretch;
+  display: block;
 }
 
 .fortune-copy,
-.aiko-guide-card,
 .fortune-controls,
 .fortune-result-card {
   min-width: 0;
@@ -47,6 +43,7 @@
 
 .fortune-copy::after {
   position: absolute;
+  z-index: 0;
   right: clamp(18px, 5vw, 70px);
   bottom: clamp(16px, 5vw, 52px);
   width: min(30vw, 230px);
@@ -57,6 +54,25 @@
     repeating-conic-gradient(from -14deg, rgba(245, 92, 161, 0.22) 0deg 18deg, rgba(184, 154, 250, 0.2) 18deg 36deg, rgba(255, 214, 92, 0.2) 36deg 54deg, rgba(105, 213, 183, 0.18) 54deg 72deg);
   opacity: 0.58;
   content: "";
+}
+
+.fortune-copy > :not(.fortune-hero-aiko) {
+  position: relative;
+  z-index: 2;
+}
+
+.fortune-hero-aiko {
+  position: absolute;
+  z-index: 1;
+  right: clamp(18px, 7vw, 96px);
+  bottom: -24px;
+  width: min(30vw, 260px);
+  max-height: 92%;
+  object-fit: contain;
+  opacity: 0.24;
+  mix-blend-mode: multiply;
+  filter: drop-shadow(0 20px 34px rgba(169, 84, 142, 0.18));
+  pointer-events: none;
 }
 
 .fortune-kicker,
@@ -81,10 +97,10 @@
   overflow-wrap: anywhere;
 }
 
-.fortune-copy p:last-child {
+.fortune-lead {
   position: relative;
   z-index: 1;
-  max-width: min(620px, 100%);
+  max-width: min(520px, 62%);
   margin: 18px 0 0;
   color: #51405a;
   font-size: clamp(14px, 2vw, 17px);
@@ -93,19 +109,8 @@
   overflow-wrap: anywhere;
 }
 
-.fortune-copy p:last-child span {
+.fortune-lead span {
   display: block;
-}
-
-.aiko-guide-card {
-  display: grid;
-  grid-template-columns: minmax(118px, 145px) minmax(0, 1fr);
-  grid-template-rows: 1fr;
-  gap: 12px;
-  height: 260px;
-  padding: 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 247, 252, 0.98), rgba(247, 243, 255, 0.96) 62%, rgba(240, 255, 249, 0.96));
 }
 
 .aiko-portrait,
@@ -113,23 +118,6 @@
   position: relative;
   overflow: hidden;
   background: #fffafd;
-}
-
-.aiko-portrait {
-  min-height: 0;
-  height: 100%;
-  display: grid;
-  place-items: end center;
-  border: 1px solid rgba(235, 123, 176, 0.28);
-  border-radius: 8px;
-}
-
-.aiko-portrait img {
-  display: block;
-  width: auto;
-  height: 100%;
-  max-width: 92%;
-  object-fit: contain;
 }
 
 .aiko-bubble,
@@ -152,19 +140,12 @@
   content: "";
 }
 
-.aiko-bubble::before {
-  top: 50%;
-  left: -7px;
-  transform: translateY(-50%) rotate(-45deg);
-}
-
 .result-speech::before {
   top: 24px;
   left: -7px;
   transform: rotate(-45deg);
 }
 
-.aiko-bubble span,
 .result-speech span {
   display: block;
   margin-bottom: 5px;
@@ -173,7 +154,6 @@
   font-weight: 900;
 }
 
-.aiko-bubble p,
 .result-speech p {
   margin: 0;
   color: #3f3449;
@@ -343,7 +323,27 @@
 }
 
 .spinning .fortune-wheel {
-  animation: fortune-spin 0.68s linear infinite;
+  animation: fortune-spin 0.42s linear infinite;
+  filter: saturate(1.16) drop-shadow(0 18px 28px rgba(218, 78, 154, 0.28));
+  will-change: transform;
+}
+
+.spinning .fortune-wheel-panel {
+  animation: roulette-stage-pulse 0.7s ease-in-out infinite alternate;
+}
+
+.spinning .wheel-lights i {
+  animation: roulette-light 0.42s ease-in-out infinite alternate;
+}
+
+.spinning .wheel-lights i:nth-child(2),
+.spinning .wheel-lights i:nth-child(5) {
+  animation-delay: 0.11s;
+}
+
+.spinning .wheel-lights i:nth-child(3),
+.spinning .wheel-lights i:nth-child(6) {
+  animation-delay: 0.22s;
 }
 
 .fortune-wheel span {
@@ -796,8 +796,31 @@
 }
 
 @keyframes fortune-spin {
+  from {
+    transform: rotate(var(--wheel-rotation));
+  }
   to {
-    transform: rotate(360deg);
+    transform: rotate(calc(var(--wheel-rotation) + 360deg));
+  }
+}
+
+@keyframes roulette-stage-pulse {
+  from {
+    box-shadow: 0 12px 28px rgba(210, 109, 168, 0.12);
+  }
+  to {
+    box-shadow: 0 18px 42px rgba(232, 77, 154, 0.22);
+  }
+}
+
+@keyframes roulette-light {
+  from {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.28);
   }
 }
 
@@ -927,7 +950,6 @@
 }
 
 @media (max-width: 940px) {
-  .fortune-hero,
   .fortune-workbench,
   .result-stage {
     grid-template-columns: 1fr;
@@ -969,22 +991,17 @@
     line-height: 1.18;
   }
 
-  .fortune-copy p:last-child {
+  .fortune-lead {
+    max-width: min(280px, 74%);
     font-size: 13px;
     line-height: 1.85;
   }
 
-  .aiko-guide-card {
-    grid-template-columns: 1fr;
-    grid-template-rows: 300px auto;
-    height: auto;
-    padding: 14px;
-  }
-
-  .aiko-bubble::before {
-    top: -7px;
-    left: 28px;
-    transform: rotate(45deg);
+  .fortune-hero-aiko {
+    right: -10px;
+    bottom: -18px;
+    width: min(44vw, 190px);
+    opacity: 0.18;
   }
 
   .fortune-workbench {

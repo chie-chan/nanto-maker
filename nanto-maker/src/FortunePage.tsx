@@ -535,7 +535,7 @@ export default function FortunePage() {
 
     spinTimerRef.current = window.setTimeout(() => {
       setPhase("revealed");
-    }, 1350);
+    }, 2100);
 
     if (!locationName.trim()) return;
 
@@ -561,24 +561,11 @@ export default function FortunePage() {
           <div className="fortune-copy">
             <p className="fortune-kicker">aiko animal PARK</p>
             <h1 id="fortune-title">運試しルーレット</h1>
-            <p>
+            <p className="fortune-lead">
               <span>今日の運をくるっと試して、</span>
-              <span>大当たりのあいこイラスト引換券をねらってみてね。</span>
+              <span>大当たりをねらってみてね。</span>
             </p>
-          </div>
-
-          <div className="aiko-guide-card" aria-label="あいこの案内">
-            <div className="aiko-portrait">
-              <img src="/assets/fortune/aiko-portrait-front.png" alt="あいこ" />
-            </div>
-            <div className="aiko-bubble">
-              <span>あいこ</span>
-              <p>
-                準備できたら、ルーレットを回してね。
-                <br />
-                大当たりが出たら、あいこイラスト引換券だよ。
-              </p>
-            </div>
+            <img className="fortune-hero-aiko" src="/assets/fortune/aiko-portrait-front.png" alt="" aria-hidden="true" />
           </div>
         </div>
 
