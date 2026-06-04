@@ -42,59 +42,53 @@ type KnownPlace = {
 };
 
 const knownPlaces: KnownPlace[] = [
-  { name: "北海道", aliases: ["札幌"], latitude: 43.0642, longitude: 141.3469 },
-  { name: "青森", aliases: ["青森県"], latitude: 40.8244, longitude: 140.74 },
-  { name: "岩手", aliases: ["岩手県", "盛岡"], latitude: 39.7036, longitude: 141.1525 },
-  { name: "宮城", aliases: ["宮城県", "仙台"], latitude: 38.2689, longitude: 140.8719 },
-  { name: "秋田", aliases: ["秋田県"], latitude: 39.7186, longitude: 140.1025 },
-  { name: "山形", aliases: ["山形県"], latitude: 38.2406, longitude: 140.3633 },
-  { name: "福島", aliases: ["福島県"], latitude: 37.75, longitude: 140.4678 },
-  { name: "茨城", aliases: ["茨城県", "水戸"], latitude: 36.3414, longitude: 140.4467 },
-  { name: "栃木", aliases: ["栃木県", "宇都宮"], latitude: 36.5658, longitude: 139.8836 },
-  { name: "群馬", aliases: ["群馬県", "前橋"], latitude: 36.3911, longitude: 139.0608 },
-  { name: "埼玉", aliases: ["埼玉県", "さいたま"], latitude: 35.8569, longitude: 139.6489 },
-  { name: "千葉", aliases: ["千葉県"], latitude: 35.6047, longitude: 140.1233 },
-  { name: "東京", aliases: ["東京都", "Tokyo"], latitude: 35.6894, longitude: 139.6917 },
-  { name: "神奈川", aliases: ["神奈川県", "横浜"], latitude: 35.4478, longitude: 139.6425 },
-  { name: "新潟", aliases: ["新潟県"], latitude: 37.9022, longitude: 139.0236 },
-  { name: "富山", aliases: ["富山県"], latitude: 36.6953, longitude: 137.2114 },
-  { name: "石川", aliases: ["石川県", "金沢"], latitude: 36.5944, longitude: 136.6256 },
-  { name: "福井", aliases: ["福井県"], latitude: 36.0653, longitude: 136.2219 },
-  { name: "山梨", aliases: ["山梨県", "甲府"], latitude: 35.6639, longitude: 138.5683 },
-  { name: "長野", aliases: ["長野県"], latitude: 36.6514, longitude: 138.1811 },
-  { name: "岐阜", aliases: ["岐阜県"], latitude: 35.3911, longitude: 136.7222 },
-  { name: "静岡", aliases: ["静岡県"], latitude: 34.9769, longitude: 138.3831 },
-  { name: "愛知", aliases: ["愛知県", "名古屋"], latitude: 35.1803, longitude: 136.9067 },
-  { name: "三重", aliases: ["三重県", "津"], latitude: 34.7303, longitude: 136.5086 },
-  { name: "滋賀", aliases: ["滋賀県", "大津"], latitude: 35.0044, longitude: 135.8683 },
-  { name: "京都", aliases: ["京都府"], latitude: 35.0214, longitude: 135.7556 },
-  {
-    name: "京都府亀岡市",
-    aliases: ["亀岡", "亀岡市", "京都亀岡", "京都 亀岡", "京都府亀岡", "京都府 亀岡", "京都府亀岡市", "Kameoka"],
-    latitude: 35.0,
-    longitude: 135.58333,
-  },
-  { name: "大阪", aliases: ["大阪府"], latitude: 34.6864, longitude: 135.52 },
-  { name: "兵庫", aliases: ["兵庫県", "神戸"], latitude: 34.6914, longitude: 135.1831 },
-  { name: "奈良", aliases: ["奈良県"], latitude: 34.6853, longitude: 135.8328 },
-  { name: "和歌山", aliases: ["和歌山県"], latitude: 34.2261, longitude: 135.1675 },
-  { name: "鳥取", aliases: ["鳥取県"], latitude: 35.5036, longitude: 134.2383 },
-  { name: "島根", aliases: ["島根県", "松江"], latitude: 35.4722, longitude: 133.0506 },
-  { name: "岡山", aliases: ["岡山県"], latitude: 34.6617, longitude: 133.935 },
-  { name: "広島", aliases: ["広島県"], latitude: 34.3964, longitude: 132.4594 },
-  { name: "山口", aliases: ["山口県"], latitude: 34.1858, longitude: 131.4714 },
-  { name: "徳島", aliases: ["徳島県"], latitude: 34.0658, longitude: 134.5594 },
-  { name: "香川", aliases: ["香川県", "高松"], latitude: 34.3403, longitude: 134.0433 },
-  { name: "愛媛", aliases: ["愛媛県", "松山"], latitude: 33.8417, longitude: 132.7661 },
-  { name: "高知", aliases: ["高知県"], latitude: 33.5597, longitude: 133.5311 },
-  { name: "福岡", aliases: ["福岡県"], latitude: 33.6064, longitude: 130.4181 },
-  { name: "佐賀", aliases: ["佐賀県"], latitude: 33.2494, longitude: 130.2989 },
-  { name: "長崎", aliases: ["長崎県"], latitude: 32.7447, longitude: 129.8736 },
-  { name: "熊本", aliases: ["熊本県"], latitude: 32.7897, longitude: 130.7417 },
-  { name: "大分", aliases: ["大分県"], latitude: 33.2381, longitude: 131.6125 },
-  { name: "宮崎", aliases: ["宮崎県"], latitude: 31.9111, longitude: 131.4239 },
-  { name: "鹿児島", aliases: ["鹿児島県"], latitude: 31.5603, longitude: 130.5581 },
-  { name: "沖縄", aliases: ["沖縄県", "那覇"], latitude: 26.2125, longitude: 127.6811 },
+  { name: "北海道", aliases: ["ほっかいどう"], latitude: 43.0642, longitude: 141.3469 },
+  { name: "青森県", aliases: ["青森", "あおもり"], latitude: 40.8244, longitude: 140.74 },
+  { name: "岩手県", aliases: ["岩手", "いわて"], latitude: 39.7036, longitude: 141.1525 },
+  { name: "宮城県", aliases: ["宮城", "みやぎ"], latitude: 38.2689, longitude: 140.8719 },
+  { name: "秋田県", aliases: ["秋田", "あきた"], latitude: 39.7186, longitude: 140.1025 },
+  { name: "山形県", aliases: ["山形", "やまがた"], latitude: 38.2406, longitude: 140.3633 },
+  { name: "福島県", aliases: ["福島", "ふくしま"], latitude: 37.75, longitude: 140.4678 },
+  { name: "茨城県", aliases: ["茨城", "いばらき"], latitude: 36.3414, longitude: 140.4467 },
+  { name: "栃木県", aliases: ["栃木", "とちぎ"], latitude: 36.5658, longitude: 139.8836 },
+  { name: "群馬県", aliases: ["群馬", "ぐんま"], latitude: 36.3911, longitude: 139.0608 },
+  { name: "埼玉県", aliases: ["埼玉"], latitude: 35.8569, longitude: 139.6489 },
+  { name: "千葉県", aliases: ["千葉", "ちば"], latitude: 35.6047, longitude: 140.1233 },
+  { name: "東京都", aliases: ["東京", "とうきょう", "Tokyo"], latitude: 35.6894, longitude: 139.6917 },
+  { name: "神奈川県", aliases: ["神奈川", "かながわ"], latitude: 35.4478, longitude: 139.6425 },
+  { name: "新潟県", aliases: ["新潟", "にいがた"], latitude: 37.9022, longitude: 139.0236 },
+  { name: "富山県", aliases: ["富山", "とやま"], latitude: 36.6953, longitude: 137.2114 },
+  { name: "石川県", aliases: ["石川", "いしかわ"], latitude: 36.5944, longitude: 136.6256 },
+  { name: "福井県", aliases: ["福井", "ふくい"], latitude: 36.0653, longitude: 136.2219 },
+  { name: "山梨県", aliases: ["山梨", "やまなし"], latitude: 35.6639, longitude: 138.5683 },
+  { name: "長野県", aliases: ["長野", "ながの"], latitude: 36.6514, longitude: 138.1811 },
+  { name: "岐阜県", aliases: ["岐阜", "ぎふ"], latitude: 35.3911, longitude: 136.7222 },
+  { name: "静岡県", aliases: ["静岡", "しずおか"], latitude: 34.9769, longitude: 138.3831 },
+  { name: "愛知県", aliases: ["愛知", "あいち"], latitude: 35.1803, longitude: 136.9067 },
+  { name: "三重県", aliases: ["三重", "みえ"], latitude: 34.7303, longitude: 136.5086 },
+  { name: "滋賀県", aliases: ["滋賀", "しが"], latitude: 35.0044, longitude: 135.8683 },
+  { name: "京都府", aliases: ["京都", "きょうと"], latitude: 35.0214, longitude: 135.7556 },
+  { name: "大阪府", aliases: ["大阪", "おおさか"], latitude: 34.6864, longitude: 135.52 },
+  { name: "兵庫県", aliases: ["兵庫", "ひょうご"], latitude: 34.6914, longitude: 135.1831 },
+  { name: "奈良県", aliases: ["奈良", "なら"], latitude: 34.6853, longitude: 135.8328 },
+  { name: "和歌山県", aliases: ["和歌山", "わかやま"], latitude: 34.2261, longitude: 135.1675 },
+  { name: "鳥取県", aliases: ["鳥取", "とっとり"], latitude: 35.5036, longitude: 134.2383 },
+  { name: "島根県", aliases: ["島根", "しまね"], latitude: 35.4722, longitude: 133.0506 },
+  { name: "岡山県", aliases: ["岡山", "おかやま"], latitude: 34.6617, longitude: 133.935 },
+  { name: "広島県", aliases: ["広島", "ひろしま"], latitude: 34.3964, longitude: 132.4594 },
+  { name: "山口県", aliases: ["山口", "やまぐち"], latitude: 34.1858, longitude: 131.4714 },
+  { name: "徳島県", aliases: ["徳島", "とくしま"], latitude: 34.0658, longitude: 134.5594 },
+  { name: "香川県", aliases: ["香川", "かがわ"], latitude: 34.3403, longitude: 134.0433 },
+  { name: "愛媛県", aliases: ["愛媛", "えひめ"], latitude: 33.8417, longitude: 132.7661 },
+  { name: "高知県", aliases: ["高知", "こうち"], latitude: 33.5597, longitude: 133.5311 },
+  { name: "福岡県", aliases: ["福岡", "ふくおか"], latitude: 33.6064, longitude: 130.4181 },
+  { name: "佐賀県", aliases: ["佐賀", "さが"], latitude: 33.2494, longitude: 130.2989 },
+  { name: "長崎県", aliases: ["長崎", "ながさき"], latitude: 32.7447, longitude: 129.8736 },
+  { name: "熊本県", aliases: ["熊本", "くまもと"], latitude: 32.7897, longitude: 130.7417 },
+  { name: "大分県", aliases: ["大分", "おおいた"], latitude: 33.2381, longitude: 131.6125 },
+  { name: "宮崎県", aliases: ["宮崎", "みやざき"], latitude: 31.9111, longitude: 131.4239 },
+  { name: "鹿児島県", aliases: ["鹿児島", "かごしま"], latitude: 31.5603, longitude: 130.5581 },
+  { name: "沖縄県", aliases: ["沖縄", "おきなわ"], latitude: 26.2125, longitude: 127.6811 },
 ];
 
 const wheelSegments = ["大吉", "中吉", "吉", "小吉", "末吉", "中吉", "大吉", "吉", "小吉", "末吉", "凶", "大当たり"];
@@ -253,61 +247,31 @@ function getKnownPlaceKeys(place: KnownPlace) {
   return [place.name, ...place.aliases].map((alias) => normalizePlaceName(alias));
 }
 
+function scoreKnownPlace(place: KnownPlace, normalized: string) {
+  if (!normalized) return 0;
+
+  return Math.max(
+    ...getKnownPlaceKeys(place).map((key) => {
+      if (normalized === key) return 100 + key.length;
+      if (key.startsWith(normalized)) return 70 + normalized.length;
+      if (key.includes(normalized)) return 40 + normalized.length;
+      if (normalized.includes(key)) return 20 + key.length;
+      return 0;
+    })
+  );
+}
+
 function findKnownPlace(value: string) {
   const normalized = normalizePlaceName(value);
-  const exactMatch = knownPlaces.find((place) => getKnownPlaceKeys(place).some((key) => normalized === key));
-
-  if (exactMatch) return exactMatch;
-
-  const partialMatches = knownPlaces
+  const matches = knownPlaces
     .map((place) => ({
       place,
-      keyLength: Math.max(...getKnownPlaceKeys(place).filter((key) => normalized.includes(key)).map((key) => key.length), 0),
+      score: scoreKnownPlace(place, normalized),
     }))
-    .filter(({ keyLength }) => keyLength > 0)
-    .sort((a, b) => b.keyLength - a.keyLength);
-
-  return partialMatches[0]?.place;
-}
-
-function pickBestGeoPlace(locationName: string, results: Array<Record<string, unknown>> = []) {
-  const normalized = normalizePlaceName(locationName);
-  const japaneseResults = results.filter((place) => place.country_code === "JP");
-  const candidates = japaneseResults.length > 0 ? japaneseResults : results;
-
-  return candidates
-    .map((place) => {
-      const name = normalizePlaceName(String(place.name ?? ""));
-      const admin1 = normalizePlaceName(String(place.admin1 ?? ""));
-      const admin2 = normalizePlaceName(String(place.admin2 ?? ""));
-      let score = 0;
-
-      if (normalized === name) score += 40;
-      if (normalized === `${admin1}${name}` || normalized === `${admin1}${admin2}`) score += 80;
-      if (admin1 && normalized.includes(admin1)) score += 30;
-      if (admin2 && normalized.includes(admin2)) score += 30;
-      if (typeof place.population === "number") score += Math.min(Number(place.population) / 10000, 20);
-      if (place.feature_code === "PPLA2" || place.feature_code === "PPLA3") score += 8;
-
-      return { place, score };
-    })
+    .filter(({ score }) => score > 0)
     .sort((a, b) => b.score - a.score)[0]?.place;
-}
 
-function formatGeoPlaceName(place: Record<string, unknown>) {
-  return [place.name, place.admin1]
-    .filter((value) => typeof value === "string" && value.length > 0)
-    .join(" / ");
-}
-
-function isGeoPlace(place: unknown): place is { latitude: number; longitude: number; name: string; admin1?: string } {
-  return (
-    typeof place === "object" &&
-    place !== null &&
-    typeof (place as { latitude?: unknown }).latitude === "number" &&
-    typeof (place as { longitude?: unknown }).longitude === "number" &&
-    typeof (place as { name?: unknown }).name === "string"
-  );
+  return matches;
 }
 
 function summarizeAfternoon(times: string[], probabilities: number[] = [], codes: number[] = []) {
@@ -326,25 +290,11 @@ function summarizeAfternoon(times: string[], probabilities: number[] = [], codes
 
 async function fetchWeatherSummary(locationName: string): Promise<WeatherSummary> {
   const knownPlace = findKnownPlace(locationName);
-  let place = knownPlace
-    ? { name: knownPlace.name, admin1: "", latitude: knownPlace.latitude, longitude: knownPlace.longitude }
-    : null;
-
-  if (!place) {
-    const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationName)}&count=10&language=ja&format=json`;
-    const geoResponse = await fetch(geoUrl);
-    if (!geoResponse.ok) throw new Error("地域が見つかりませんでした。");
-    const geoData = await geoResponse.json();
-    const geoPlace = pickBestGeoPlace(locationName, geoData.results ?? []);
-    place = isGeoPlace(geoPlace)
-      ? { name: formatGeoPlaceName(geoPlace), admin1: "", latitude: geoPlace.latitude, longitude: geoPlace.longitude }
-      : null;
-    if (!place) throw new Error("地域が見つかりませんでした。");
-  }
+  if (!knownPlace) throw new Error("都道府県が見つかりませんでした。");
 
   const params = new URLSearchParams({
-    latitude: String(place.latitude),
-    longitude: String(place.longitude),
+    latitude: String(knownPlace.latitude),
+    longitude: String(knownPlace.longitude),
     current: "temperature_2m,weather_code,precipitation,cloud_cover",
     hourly: "precipitation_probability,weather_code,temperature_2m",
     daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
@@ -365,7 +315,7 @@ async function fetchWeatherSummary(locationName: string): Promise<WeatherSummary
   );
 
   return {
-    place: [place.name, place.admin1].filter(Boolean).join(" / "),
+    place: knownPlace.name,
     current: labelWeather(currentCode),
     temperature,
     high: daily.temperature_2m_max?.[0] ?? null,
@@ -385,7 +335,7 @@ function getAnimalCareTip(animalKind: string, weather: WeatherSummary | null, se
   const placeLead =
     weather && typeof temperature === "number"
       ? `${weather.place}は最高${Math.round(temperature)}度くらい。`
-      : "地域を入れると、天気に合わせて豆ちしきが変わるよ。";
+      : "都道府県を入れると、天気に合わせて豆ちしきが変わるよ。";
   const note = "あいこの豆ちしきは参考用です。いつもと違う様子がある時は、無理せず獣医さんに聞いてね。";
   const tone =
     typeof temperature === "number" && temperature >= 28
@@ -568,7 +518,7 @@ function PrizeFanfare({ isHit }: { isHit: boolean }) {
 export default function FortunePage() {
   const [petName, setPetName] = useState("");
   const [animalKind, setAnimalKind] = useState("犬");
-  const [locationName, setLocationName] = useState("東京");
+  const [locationName, setLocationName] = useState("東京都");
   const [result, setResult] = useState<FortuneResult | null>(null);
   const [weather, setWeather] = useState<WeatherSummary | null>(null);
   const [weatherError, setWeatherError] = useState("");
@@ -648,12 +598,12 @@ export default function FortunePage() {
             </label>
 
             <label>
-              あなたの地域
+              あなたの都道府県
               <input
                 list="fortune-place-options"
                 value={locationName}
                 onChange={(event) => setLocationName(event.target.value)}
-                placeholder="例：東京、横浜、大阪"
+                placeholder="例：京都府、東京、大阪"
                 autoComplete="off"
               />
               <datalist id="fortune-place-options">
@@ -775,7 +725,7 @@ export default function FortunePage() {
                         <p>{weather.advice}</p>
                       </>
                     )}
-                    {!isLoadingWeather && !weatherError && !weather && <p>地域を入れると、今日の天気も見られます。</p>}
+                    {!isLoadingWeather && !weatherError && !weather && <p>都道府県を入れると、今日の天気も見られます。</p>}
                   </div>
                 </div>
               )}
