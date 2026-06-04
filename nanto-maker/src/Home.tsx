@@ -6,6 +6,16 @@ interface Props {
 
 const tools = [
   {
+    id: "fortune",
+    path: "/fortune",
+    label: "LUCK",
+    title: "運試しルーレット",
+    sub: "あいこが今日の運をくるっと決める、大当たりつきのミニルーレット。",
+    cta: "まわしてみる",
+    theme: "pink",
+    thumb: "/assets/fortune/aiko-stickers/winner.png",
+  },
+  {
     id: "puzzle",
     path: "/puzzle",
     label: "GAME",

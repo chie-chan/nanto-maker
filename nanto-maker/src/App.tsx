@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
+import FortunePage from "./FortunePage";
 import GamePage from "./GamePage";
 import Home from "./Home";
 import Kourin from "./Kourin";
@@ -24,6 +25,7 @@ function useWindowWidth() {
 
 const navItems = [
   { path: "/", label: "あそびば" },
+  { path: "/fortune", label: "運試し" },
   { path: "/puzzle", label: "パズル" },
   { path: "/mogura", label: "もぐら" },
   { path: "/kourin", label: "降臨" },
@@ -70,6 +72,8 @@ export default function App() {
 
       <Routes>
         <Route path="/" element={<Home isMobile={isMobile} />} />
+        <Route path="/fortune" element={<FortunePage />} />
+        <Route path="/uranai" element={<Navigate to="/fortune" replace />} />
         <Route path="/game" element={<GamePage isMobile={isMobile} dark={dark} text={text} bg={bg} />} />
         <Route path="/kourin" element={<Kourin isMobile={isMobile} dark={dark} text={text} bg={bg} />} />
         <Route path="/mogura" element={<Mogura isMobile={isMobile} dark={dark} text={text} bg={bg} />} />
