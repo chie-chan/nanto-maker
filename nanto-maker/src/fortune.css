@@ -37,23 +37,7 @@
   padding: clamp(30px, 5vw, 56px);
   overflow: hidden;
   background:
-    linear-gradient(135deg, rgba(255, 245, 251, 0.94), rgba(246, 241, 255, 0.9) 58%, rgba(239, 255, 249, 0.92)),
-    url("/assets/style-samples/style-themepark.png") center / cover;
-}
-
-.fortune-copy::after {
-  position: absolute;
-  z-index: 0;
-  right: clamp(18px, 5vw, 70px);
-  bottom: clamp(16px, 5vw, 52px);
-  width: min(30vw, 230px);
-  height: min(30vw, 230px);
-  border: 1px solid rgba(238, 112, 170, 0.22);
-  border-radius: 50%;
-  background:
-    repeating-conic-gradient(from -14deg, rgba(245, 92, 161, 0.22) 0deg 18deg, rgba(184, 154, 250, 0.2) 18deg 36deg, rgba(255, 214, 92, 0.2) 36deg 54deg, rgba(105, 213, 183, 0.18) 54deg 72deg);
-  opacity: 0.58;
-  content: "";
+    linear-gradient(135deg, rgba(255, 246, 251, 0.98), rgba(248, 242, 255, 0.94) 58%, rgba(240, 255, 250, 0.96));
 }
 
 .fortune-copy > :not(.fortune-hero-aiko) {
@@ -69,7 +53,7 @@
   width: min(30vw, 260px);
   max-height: 92%;
   object-fit: contain;
-  opacity: 0.24;
+  opacity: 0.34;
   mix-blend-mode: multiply;
   filter: drop-shadow(0 20px 34px rgba(169, 84, 142, 0.18));
   pointer-events: none;
@@ -979,13 +963,6 @@
     padding: 24px 18px;
   }
 
-  .fortune-copy::after {
-    right: -60px;
-    bottom: -60px;
-    width: 220px;
-    height: 220px;
-  }
-
   .fortune-copy h1 {
     font-size: clamp(29px, 9vw, 34px);
     line-height: 1.18;
@@ -998,10 +975,10 @@
   }
 
   .fortune-hero-aiko {
-    right: -10px;
-    bottom: -18px;
-    width: min(44vw, 190px);
-    opacity: 0.18;
+    right: 10px;
+    bottom: -16px;
+    width: min(36vw, 158px);
+    opacity: 0.32;
   }
 
   .fortune-workbench {
